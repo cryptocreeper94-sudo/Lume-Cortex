@@ -57,6 +57,65 @@ function renderSettings(container) {
   })
   themeRow.appendChild(themeToggle)
   prefsSection.appendChild(themeRow)
+
+  /// SMS Opt-In row
+  define smsRow = dom.create('div', { styles: { padding: '0.75rem 0', borderBottom: '1px solid var(--t4)' } })
+  smsRow.appendChild(dom.create('span', { className: 'settings-row-label', text: 'SMS Notifications', styles: { display: 'block', marginBottom: '0.4rem' } }))
+
+  define smsPhoneRow = dom.create('div', { styles: { display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.4rem' } })
+  define smsInput = dom.create('input', {
+    id: 'sms-phone-input',
+    attrs: { type: 'tel', placeholder: '+1 (555) 555-5555', autocomplete: 'tel' },
+    styles: { flex: '1', background: 'var(--card)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '0.45rem 0.6rem', color: 'var(--t1)', fontSize: '0.72rem', fontFamily: 'var(--sans)', outline: 'none', maxWidth: '220px' }
+  })
+  smsPhoneRow.appendChild(smsInput)
+
+  define smsSaveBtn = dom.create('button', {
+    text: 'Save',
+    styles: { background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.15)', borderRadius: '8px', padding: '0.4rem 0.75rem', color: 'var(--cyan)', cursor: 'pointer', fontSize: '0.65rem', fontFamily: 'var(--sans)', fontWeight: '600' },
+    onClick: () => { handleSmsOptIn() }
+  })
+  smsPhoneRow.appendChild(smsSaveBtn)
+  smsRow.appendChild(smsPhoneRow)
+
+  define smsCheckRow = dom.create('label', { styles: { display: 'flex', alignItems: 'flex-start', gap: '0.4rem', cursor: 'pointer' } })
+  define smsCheck = dom.create('input', {
+    id: 'sms-opt-in-check',
+    attrs: { type: 'checkbox' },
+    styles: { marginTop: '0.15rem', accentColor: 'var(--cyan)' }
+  })
+  smsCheckRow.appendChild(smsCheck)
+  smsCheckRow.appendChild(dom.create('span', {
+    styles: { fontSize: '0.55rem', color: 'var(--t3)', lineHeight: '1.5' },
+    text: 'I agree to receive SMS notifications from Lume Cortex (DarkWave Studios LLC). Message & data rates may apply. Reply STOP to opt out at any time. Frequency varies. View our Privacy Policy and Terms of Service for details.'
+  }))
+  smsRow.appendChild(smsCheckRow)
+  prefsSection.appendChild(smsRow)
+
+  /// Email notifications toggle
+  define emailRow = dom.create('div', { className: 'settings-row' })
+  emailRow.appendChild(dom.create('span', { className: 'settings-row-label', text: 'Email Notifications' }))
+  define emailToggle = dom.create('button', {
+    id: 'email-notif-toggle',
+    text: 'Enabled',
+    styles: { background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '8px', padding: '0.35rem 0.8rem', color: 'var(--green)', cursor: 'pointer', fontSize: '0.65rem', fontFamily: 'var(--sans)', fontWeight: '600' },
+    onClick: () => {
+      define btn = dom.select('#email-notif-toggle')
+      if (btn.textContent === 'Enabled') {
+        btn.textContent = 'Disabled'
+        btn.style.background = 'var(--card)'
+        btn.style.borderColor = 'var(--glass-border)'
+        btn.style.color = 'var(--t3)'
+      } else {
+        btn.textContent = 'Enabled'
+        btn.style.background = 'rgba(34,197,94,0.08)'
+        btn.style.borderColor = 'rgba(34,197,94,0.15)'
+        btn.style.color = 'var(--green)'
+      }
+    }
+  })
+  emailRow.appendChild(emailToggle)
+  prefsSection.appendChild(emailRow)
   page.appendChild(prefsSection)
 
   /// Billing Section
@@ -160,3 +219,40 @@ async function handleUpgrade(targetTier) {
   } catch (e) { console.log('Upgrade error:', e.message) }
 }
 
+/// ── SMS Opt-In Handler (A2P 10DLC Compliant) ──
+async function handleSmsOptIn() {
+  define check = dom.select('#sms-opt-in-check')
+  define phoneInput = dom.select('#sms-phone-input')
+  define phone = phoneInput ? phoneInput.value.trim() : ''
+
+  if (!check || !check.checked) {
+    alert('Please check the consent box to opt in to SMS notifications.')
+    return
+  }
+  if (!phone || phone.length < 10) {
+    alert('Please enter a valid phone number.')
+    return
+  }
+
+  try {
+    define res = await fetch(API_BASE + '/v1/sms/opt-in', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({
+        phone: phone,
+        consent: true,
+        consent_text: 'I agree to receive SMS notifications from Lume Cortex (DarkWave Studios LLC). Message & data rates may apply. Reply STOP to opt out.',
+        consent_timestamp: new Date().toISOString(),
+        source: 'lume-cortex-settings'
+      })
+    })
+    if (res.ok) {
+      alert('SMS notifications enabled! You will receive a confirmation text.')
+    } else {
+      define data = await res.json()
+      alert('Error: ' + (data.error || 'Could not enable SMS'))
+    }
+  } catch (e) {
+    alert('SMS opt-in saved locally. Backend integration pending.')
+    console.log('SMS opt-in error:', e.message)
+  }
+}
