@@ -106,7 +106,7 @@ function renderHome(container) {
   newsCard.appendChild(newsH)
   define newsItems = [
     'Lume v1.1.0 released — Full-Stack Expansion Block',
-    'Axiom knowledge spine reaches 41,351 topics across 64 domains',
+    'Axiom knowledge spine reaches 45,889 topics across 67 domains',
     'Canon² research archive published on Zenodo',
     'CHI 2027 paper submission in preparation'
   ]
@@ -241,7 +241,7 @@ function renderHome(container) {
     onClick: () => navigateTo('system')
   })
   statusBar.appendChild(dom.create('div', { className: 'ss-dot' }))
-  statusBar.appendChild(dom.create('span', { className: 'ss-text', text: 'All systems nominal — 41,351 topics · 64 domains · 42 ecosystem apps · 0 violations' }))
+  statusBar.appendChild(dom.create('span', { className: 'ss-text', text: 'All systems nominal — 45,889 topics · 67 domains · 42 ecosystem apps · 0 violations' }))
   statusBar.appendChild(dom.create('span', { className: 'ss-badge', text: 'Deterministic' }))
   page.appendChild(statusBar)
 

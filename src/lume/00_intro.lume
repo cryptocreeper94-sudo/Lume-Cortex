@@ -3,7 +3,7 @@
 ///  Built entirely in Lume — the AI-native programming language
 ///
 ///  Architecture: Lume-OS v1 + v2 Zenodo Papers
-///  Kernel: Axiom (41,351 topics, 64 domains, 42-module runtime)
+///  Kernel: Axiom (45,889 topics, 67 domains, 42-module runtime)
 ///  Processes: Synthetic Organisms (Type 0-5)
 ///  Safety: LDIR v1.0 (31 rules, 4 tiers)
 ///  Identity: Trust Layer + TrustShield

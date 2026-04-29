@@ -171,7 +171,7 @@ function runBootSequence() {
   addLine('  Loading knowledge spine...', 'info', 200)
   addLine('  Domains: 10 categories indexed', 'ok', 100)
   addLine('  Packs: 80 domain packs loaded', 'ok', 100)
-  addLine('  Topics: 41,351 knowledge entries verified', 'ok', 150)
+  addLine('  Topics: 45,889 knowledge entries verified', 'ok', 150)
   addLine('  Words: ~1,100,000 deterministic patterns', 'ok', 100)
   addLine('  42-module runtime: 6 layers initialized', 'ok', 100)
   addLine('  Intent Router: deterministic mode', 'ok', 80)

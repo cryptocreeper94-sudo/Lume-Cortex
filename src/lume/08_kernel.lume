@@ -29,7 +29,7 @@ function renderTrustCenter(container) {
   define p1 = dom.create('div', { className: 'tc-panel active', id: 'tc-overview' })
   define metrics = dom.create('div', { className: 'metric-grid' })
   define mData = [
-    { value: '41,351', label: 'Knowledge Topics', color: 'var(--cyan)' },
+    { value: '45,889', label: 'Knowledge Topics', color: 'var(--cyan)' },
     { value: '11', label: 'Active Agents', color: 'var(--teal)' },
     { value: '0', label: 'Violations', color: 'var(--green)' },
     { value: '100%', label: 'Determinism', color: 'var(--cyan)' },
@@ -55,7 +55,7 @@ function renderTrustCenter(container) {
   define feedItems = [
     { t: '00:00.1', msg: 'BOOT_COMPLETE — All 7 phases passed', color: 'var(--green)' },
     { t: '00:00.2', msg: 'Cell-0: Homeostasis — load balancing active', color: 'var(--cyan)' },
-    { t: '00:00.3', msg: 'Cell-1: Axiom Kernel — 41,351 topics indexed across 64 domains', color: 'var(--teal)' },
+    { t: '00:00.3', msg: 'Cell-1: Axiom Kernel — 45,889 topics indexed across 67 domains', color: 'var(--teal)' },
     { t: '00:00.4', msg: 'Cell-7: Iris Observer — monitoring all cells', color: 'var(--purple)' },
     { t: '00:00.5', msg: 'Trust Layer: 6 certificates verified, 0 revocations', color: 'var(--green)' },
     { t: '00:00.6', msg: 'LDIR: 32 rules enforced — 0 violations', color: 'var(--green)' }

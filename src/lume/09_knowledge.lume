@@ -177,7 +177,7 @@ function renderSettings(container) {
     { label: 'Runtime', value: 'Lume v1.1.0 · Cortex Edition' },
     { label: 'Compiler', value: 'Lume Compiler v0.8.1' },
     { label: 'Architecture', value: 'Zero-dependency · Deterministic' },
-    { label: 'Knowledge Spine', value: '41,351 topics · 64 domains' },
+    { label: 'Knowledge Spine', value: '45,889 topics · 67 domains' },
     { label: 'LDIR Rulebook', value: '32 rules · 4 tiers' },
     { label: 'Trust Protocol', value: 'TrustShield.tech · Ed25519' },
     { label: 'Patent', value: 'US Patent Pending (5 provisionals)' },
