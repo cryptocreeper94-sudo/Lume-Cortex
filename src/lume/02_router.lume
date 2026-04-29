@@ -1,0 +1,98 @@
+/// ─── ROUTER & STATE ─────────────────────────────────────────
+
+define ROUTES = {
+  boot:    { title: 'Boot Console',  icon: '⚡', dock: false },
+  home:    { title: 'Home',          icon: '🏠', dock: true, label: 'Home' },
+  chat:    { title: 'Conversations', icon: '💬', dock: true, label: 'Chat' },
+  explore: { title: 'Explore',       icon: '📚', dock: true, label: 'Explore' },
+  system:  { title: 'Trust Center',  icon: '⛊',  dock: true, label: 'Trust' },
+  settings:{ title: 'Settings',      icon: '⚙',  dock: true, label: 'Settings' },
+  terms:   { title: 'Terms of Service', dock: false },
+  privacy: { title: 'Privacy Policy',  dock: false }
+}
+
+/// ── App State ──
+define currentPage = state.reactive('boot')
+define globalTau = state.reactive(0)
+define booted = state.reactive(false)
+define theme = state.reactive(window.localStorage.getItem('cortex-theme') || 'dark')
+
+/// ── Auth State ──
+define authToken = state.reactive(window.localStorage.getItem('axiom_token') || null)
+define currentUser = state.reactive(JSON.parse(window.localStorage.getItem('axiom_tenant') || 'null'))
+define userProfile = state.reactive(null)
+
+/// ── Conversation State ──
+define conversations = state.reactive([])
+define activeConversation = state.reactive(null)
+
+/// ── API Config ──
+define API_BASE = window.location.hostname === 'localhost' ? 'https://axiom42.com' : window.location.origin
+
+/// Apply saved theme
+if (theme.get() === 'light')
+  document.body.classList.add('light')
+
+/// Theme toggler
+function toggleTheme() {
+  define current = theme.get()
+  define next = current === 'dark' ? 'light' : 'dark'
+  theme.set(next)
+  window.localStorage.setItem('cortex-theme', next)
+  if (next === 'light') {
+    document.body.classList.add('light')
+  } else {
+    document.body.classList.remove('light')
+  }
+}
+
+/// Tau ticker — global timebase
+define tauTicker = time.ticker(() => {
+  globalTau.update(v => v + 1)
+}, 100)
+
+/// Route from hash
+function navigateTo(page) {
+  if (!ROUTES[page]) return
+  window.location.hash = '#' + page
+  currentPage.set(page)
+  renderPage()
+}
+
+/// Hash change listener
+window.addEventListener('hashchange', () => {
+  define hash = window.location.hash.slice(1) || 'home'
+  if (ROUTES[hash]) {
+    currentPage.set(hash)
+    renderPage()
+  }
+})
+
+/// ── Auth Helpers ──
+function getAuthHeaders() {
+  define token = authToken.get()
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+}
+
+async function fetchUserProfile() {
+  define token = authToken.get()
+  if (!token) return
+  try {
+    define res = await fetch(API_BASE + '/v1/me', { headers: getAuthHeaders() })
+    if (res.ok) {
+      define data = await res.json()
+      userProfile.set(data)
+    }
+  } catch (e) {
+    console.log('Profile fetch failed:', e.message)
+  }
+}
+
+function doLogout() {
+  window.localStorage.removeItem('axiom_token')
+  window.localStorage.removeItem('axiom_tenant')
+  authToken.set(null)
+  currentUser.set(null)
+  userProfile.set(null)
+  showAuthOverlay()
+}

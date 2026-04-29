@@ -1,0 +1,146 @@
+/// ─── CHAT PAGE ──────────────────────────────────────────────
+/// Full conversation interface with sidebar + messages
+
+function renderChat(container) {
+  define layout = dom.create('div', { className: 'chat-layout' })
+
+  /// ── Conversation Sidebar ──
+  define sidebar = dom.create('div', { className: 'chat-sidebar' })
+  define sHeader = dom.create('div', { className: 'chat-sidebar-header' })
+  sHeader.appendChild(dom.create('button', {
+    className: 'new-chat-btn', text: '+ New Conversation',
+    onClick: createNewConversation
+  }))
+  sidebar.appendChild(sHeader)
+
+  define convList = dom.create('div', { className: 'conv-list', id: 'chat-conv-list' })
+  sidebar.appendChild(convList)
+  layout.appendChild(sidebar)
+
+  /// ── Chat Main ──
+  define main = dom.create('div', { className: 'chat-main' })
+
+  define chatHeader = dom.create('div', { className: 'chat-header' })
+  chatHeader.appendChild(dom.create('span', { className: 'chat-header-title', id: 'active-chat-title', text: 'Select a conversation' }))
+  main.appendChild(chatHeader)
+
+  define messages = dom.create('div', { className: 'chat-messages', id: 'chat-msg-area' })
+  main.appendChild(messages)
+
+  define inputBar = dom.create('div', { className: 'chat-input-bar', id: 'chat-input-bar', styles: { display: 'none' } })
+  define chatInput = dom.create('input', {
+    id: 'chat-text-input',
+    attrs: { type: 'text', placeholder: 'Type your message...', autocomplete: 'off' },
+    onKeydown: (e) => { if (e.key === 'Enter') sendChatMessage() }
+  })
+  define chatSend = dom.create('button', { className: 'chat-send-btn', html: '→', onClick: sendChatMessage })
+  inputBar.appendChild(chatInput)
+  inputBar.appendChild(chatSend)
+  main.appendChild(inputBar)
+
+  layout.appendChild(main)
+  container.appendChild(layout)
+
+  /// Show empty state or load active conversation
+  define active = activeConversation.get()
+  if (!active) {
+    define empty = dom.create('div', { className: 'chat-empty' })
+    empty.innerHTML = '<div><div style="font-size:2rem;margin-bottom:0.5rem">💬</div><div>Select a conversation from the left<br>or start a new one</div></div>'
+    messages.appendChild(empty)
+  }
+
+  /// Populate conversation list
+  populateChatSidebar()
+
+  /// If we have an active conversation, load it
+  if (active) loadChatConversation(active.id, active.title)
+}
+
+function populateChatSidebar() {
+  define list = dom.select('#chat-conv-list')
+  if (!list) return
+  dom.clear(list)
+
+  define convs = conversations.get()
+  define active = activeConversation.get()
+
+  for (const c of (convs || [])) {
+    define item = dom.create('div', {
+      className: 'conv-item' + (active && active.id === c.id ? ' active' : ''),
+      onClick: () => loadChatConversation(c.id, c.title)
+    })
+    item.appendChild(dom.create('div', { className: 'conv-item-title', text: c.title || 'Untitled' }))
+    item.appendChild(dom.create('div', { className: 'conv-item-meta', text: (c.turn_count || 0) + ' turns' }))
+    list.appendChild(item)
+  }
+}
+
+async function loadChatConversation(id, title) {
+  activeConversation.set({ id, title })
+  dom.set_text('#active-chat-title', title || 'Conversation')
+
+  define inputBar = dom.select('#chat-input-bar')
+  if (inputBar) inputBar.style.display = 'flex'
+
+  define msgArea = dom.select('#chat-msg-area')
+  if (!msgArea) return
+  dom.clear(msgArea)
+
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations/' + id, { headers: getAuthHeaders() })
+    define data = await res.json()
+    for (const t of (data.turns || [])) {
+      appendChatMsg(t.user_input, 'user')
+      appendChatMsg(t.agent_response, 'agent', t.register, t.total_ms)
+    }
+    msgArea.scrollTop = msgArea.scrollHeight
+  } catch (e) { console.log('Load conversation error') }
+
+  populateChatSidebar()
+  setTimeout(() => { const el = dom.select('#chat-text-input'); if (el) el.focus() }, 100)
+}
+
+function appendChatMsg(text_content, type, register, ms) {
+  define msgArea = dom.select('#chat-msg-area')
+  if (!msgArea) return
+  define el = dom.create('div', { className: 'msg ' + type })
+  if (type === 'agent') {
+    el.innerHTML = (register ? '<div class="register">' + register + '</div>' : '') + escapeHtml(text_content || '') + (ms ? '<div class="meta">' + Number(ms).toFixed(1) + 'ms</div>' : '')
+  } else {
+    el.textContent = text_content || ''
+  }
+  msgArea.appendChild(el)
+  msgArea.scrollTop = msgArea.scrollHeight
+}
+
+function escapeHtml(str) {
+  define d = document.createElement('div')
+  d.textContent = str
+  return d.innerHTML
+}
+
+async function sendChatMessage() {
+  define input = dom.select('#chat-text-input')
+  define text_val = input.value.trim()
+  define active = activeConversation.get()
+  if (!text_val || !active) return
+  input.value = ''
+
+  appendChatMsg(text_val, 'user')
+
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations/' + active.id + '/speak', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({ input: text_val })
+    })
+    define data = await res.json()
+    if (data.error) {
+      appendChatMsg('Error: ' + data.error, 'agent')
+    } else {
+      appendChatMsg(data.response, 'agent', data.register, data.total_duration)
+    }
+    loadConversations()
+  } catch (e) {
+    appendChatMsg('Connection error.', 'agent')
+  }
+}

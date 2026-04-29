@@ -1,0 +1,12 @@
+{
+  "name": "lume-cortex",
+  "version": "1.0.0",
+  "description": "Lume Cortex — The Deterministic Meta-Operating System Interface | Built with Lume",
+  "type": "module",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js && npx -y serve ."
+  },
+  "author": "DarkWave Studios LLC",
+  "license": "CC-BY-4.0"
+}

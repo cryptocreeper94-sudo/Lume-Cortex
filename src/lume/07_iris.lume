@@ -1,0 +1,108 @@
+/// ─── EXPLORE PAGE ───────────────────────────────────────────
+/// Knowledge browser + agent catalog
+
+function renderExplore(container) {
+  define page = dom.create('div', { className: 'page' })
+
+  /// Header
+  define header = dom.create('div', { className: 'explore-header' })
+  header.appendChild(dom.create('h2', { text: '📚 Explore Knowledge' }))
+  header.appendChild(dom.create('p', { text: '39,618 topics · 80 packs · 10 domains · 11 specialty agents' }))
+  page.appendChild(header)
+
+  /// Top-level metrics
+  define metrics = dom.create('div', { className: 'metric-grid', styles: { marginBottom: '1.25rem' } })
+  define metricData = [
+    { value: '39,618', label: 'Topics', color: 'var(--cyan)' },
+    { value: '80', label: 'Packs', color: 'var(--teal)' },
+    { value: '10', label: 'Domains', color: 'var(--purple)' },
+    { value: '11', label: 'Agents', color: 'var(--green)' }
+  ]
+  for (const m of metricData) {
+    define card = dom.create('div', { className: 'metric-card' })
+    card.appendChild(dom.create('div', { className: 'metric-value', text: m.value, styles: { color: m.color } }))
+    card.appendChild(dom.create('div', { className: 'metric-label', text: m.label }))
+    metrics.appendChild(card)
+  }
+  page.appendChild(metrics)
+
+  /// Search
+  define search = dom.create('input', {
+    className: 'explore-search',
+    attrs: { type: 'text', placeholder: 'Search domains, topics, or agents...' },
+    onInput: (e) => filterDomains(e.target.value)
+  })
+  page.appendChild(search)
+
+  /// Domain Grid
+  page.appendChild(dom.create('div', { className: 'recent-title', text: 'Knowledge Domains', styles: { marginBottom: '0.5rem' } }))
+  define domains = [
+    { icon: '🔬', name: 'Science & Technology', topics: 5250, packs: 11 },
+    { icon: '⚕️', name: 'Medical & Health', topics: 4800, packs: 10 },
+    { icon: '⚖️', name: 'Legal & Regulatory', topics: 4200, packs: 9 },
+    { icon: '💼', name: 'Business & Strategy', topics: 4100, packs: 8 },
+    { icon: '🎨', name: 'Creative & Arts', topics: 3800, packs: 7 },
+    { icon: '📖', name: 'Education & Learning', topics: 3600, packs: 7 },
+    { icon: '💡', name: 'Philosophy & Ethics', topics: 3500, packs: 7 },
+    { icon: '₿', name: 'Crypto & Blockchain', topics: 3000, packs: 6 },
+    { icon: '👥', name: 'HR & People Ops', topics: 3000, packs: 6 },
+    { icon: '🎧', name: 'Customer Service', topics: 4368, packs: 9 }
+  ]
+
+  define grid = dom.create('div', { className: 'domain-grid', id: 'domain-grid' })
+  for (const d of domains) {
+    define card = dom.create('div', { className: 'domain-card', attrs: { 'data-name': d.name.toLowerCase() } })
+    card.appendChild(dom.create('div', { className: 'domain-icon', text: d.icon }))
+    card.appendChild(dom.create('div', { className: 'domain-name', text: d.name }))
+    card.appendChild(dom.create('div', { className: 'domain-stats', text: d.topics.toLocaleString() + ' topics · ' + d.packs + ' packs' }))
+    grid.appendChild(card)
+  }
+  page.appendChild(grid)
+
+  /// Agent Catalog
+  page.appendChild(dom.create('div', { className: 'recent-title', text: 'Specialty Agents', styles: { marginTop: '1.5rem', marginBottom: '0.5rem' } }))
+  define agents = [
+    { name: 'Core Knowledge', desc: 'General-purpose deterministic knowledge', tier: 'FREE', topics: '8,000+' },
+    { name: 'Science Agent', desc: 'Physics, chemistry, biology, astronomy', tier: 'FREE', topics: '5,250' },
+    { name: 'Medical Agent', desc: 'Clinical, pharmaceutical, anatomy', tier: 'PRO', topics: '4,800' },
+    { name: 'Legal Agent', desc: 'Constitutional, IP, contract law', tier: 'PRO', topics: '4,200' },
+    { name: 'Business Agent', desc: 'Strategy, finance, marketing', tier: 'FREE', topics: '4,100' },
+    { name: 'Creative Agent', desc: 'Writing, design, music theory', tier: 'FREE', topics: '3,800' },
+    { name: 'Education Agent', desc: 'Pedagogy, curriculum, assessment', tier: 'FREE', topics: '3,600' },
+    { name: 'Philosophy Agent', desc: 'Ethics, logic, epistemology', tier: 'FREE', topics: '3,500' },
+    { name: 'Crypto Agent', desc: 'DeFi, smart contracts, tokenomics', tier: 'PRO', topics: '3,000' },
+    { name: 'HR Agent', desc: 'Recruiting, compensation, culture', tier: 'PRO', topics: '3,000' },
+    { name: 'CS Agent', desc: 'Support workflows, escalation, CSAT', tier: 'ENTERPRISE', topics: '4,368' }
+  ]
+
+  define agentGrid = dom.create('div', { className: 'agent-grid', id: 'agent-grid' })
+  for (const a of agents) {
+    define card = dom.create('div', { className: 'agent-card' })
+    card.appendChild(dom.create('div', { className: 'agent-name', text: a.name }))
+    card.appendChild(dom.create('div', { className: 'agent-desc', text: a.desc }))
+    define meta = dom.create('div', { className: 'agent-meta' })
+    meta.appendChild(dom.create('span', { text: a.topics + ' topics' }))
+    meta.appendChild(dom.create('span', { text: '·' }))
+    define tierColor = a.tier === 'FREE' ? 'var(--green)' : a.tier === 'PRO' ? 'var(--cyan)' : 'var(--purple)'
+    meta.appendChild(dom.create('span', { text: a.tier, styles: { color: tierColor } }))
+    card.appendChild(meta)
+    agentGrid.appendChild(card)
+  }
+  page.appendChild(agentGrid)
+
+  container.appendChild(page)
+}
+
+function filterDomains(query) {
+  define q = query.toLowerCase()
+  define cards = dom.select_all('#domain-grid .domain-card')
+  for (const c of cards) {
+    define name = c.getAttribute('data-name') || ''
+    c.style.display = name.includes(q) ? '' : 'none'
+  }
+  define agents = dom.select_all('#agent-grid .agent-card')
+  for (const a of agents) {
+    define text_content = a.textContent.toLowerCase()
+    a.style.display = text_content.includes(q) ? '' : 'none'
+  }
+}

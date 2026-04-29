@@ -1,0 +1,403 @@
+/// ─── APP SHELL ──────────────────────────────────────────────
+/// Dock-based layout with topbar, profile menu, and auth overlay
+
+function buildShell() {
+  define root = dom.create('div', { id: 'cortex-root' })
+
+  /// ── Topbar ──
+  define topbar = dom.create('header', { className: 'topbar' })
+
+  define brandArea = dom.create('div', { className: 'topbar-brand' })
+  define logo = dom.create('div', { className: 'brand-logo', html: '⬡' })
+  define brandName = dom.create('span', { className: 'brand-name', text: 'CORTEX' })
+  brandArea.appendChild(logo)
+  brandArea.appendChild(brandName)
+  topbar.appendChild(brandArea)
+
+  /// Search trigger
+  define searchTrigger = dom.create('button', {
+    className: 'search-trigger', id: 'search-trigger',
+    html: '<span class="search-icon">⌕</span> <span class="search-placeholder">Ask Axiom anything...</span> <span class="search-shortcut">⌘K</span>',
+    onClick: () => { navigateTo('home'); setTimeout(() => { const el = dom.select('#home-input'); if (el) el.focus() }, 100) }
+  })
+  topbar.appendChild(searchTrigger)
+
+  /// Profile area
+  define profileArea = dom.create('div', { className: 'profile-area' })
+  define tauBadge = dom.create('div', { className: 'tau-badge', id: 'topbar-tau' })
+  tauBadge.appendChild(dom.create('span', { className: 'tau-label', text: 'τ' }))
+  tauBadge.appendChild(dom.create('span', { id: 'tau-value', text: '0000000' }))
+  profileArea.appendChild(tauBadge)
+
+  /// Theme toggle in topbar
+  define themeBtn = dom.create('button', {
+    className: 'topbar-btn', id: 'theme-btn',
+    html: theme.get() === 'dark' ? '☀' : '☾',
+    onClick: () => {
+      toggleTheme()
+      define btn = dom.select('#theme-btn')
+      if (btn) btn.innerHTML = theme.get() === 'dark' ? '☀' : '☾'
+    }
+  })
+  profileArea.appendChild(themeBtn)
+
+  /// Avatar button
+  define avatarBtn = dom.create('button', { className: 'avatar-btn', id: 'avatar-btn', onClick: toggleProfileMenu })
+  define avatarInner = dom.create('div', { className: 'avatar-circle', id: 'avatar-circle', text: '?' })
+  avatarBtn.appendChild(avatarInner)
+  profileArea.appendChild(avatarBtn)
+  topbar.appendChild(profileArea)
+
+  /// Profile dropdown
+  define profileMenu = dom.create('div', { className: 'profile-menu', id: 'profile-menu' })
+  profileMenu.innerHTML = '<div class="pm-header"><div class="pm-avatar" id="pm-avatar">?</div><div class="pm-info"><div class="pm-name" id="pm-name">—</div><div class="pm-email" id="pm-email">—</div><div class="pm-tier" id="pm-tier">FREE</div></div></div><div class="pm-divider"></div><button class="pm-item" id="pm-upload"><span>📷</span> Change Photo</button><button class="pm-item" onclick="navigateTo(\'settings\')"><span>⚙</span> Settings</button><div class="pm-divider"></div><button class="pm-item pm-danger" onclick="doLogout()"><span>↩</span> Sign Out</button>'
+  topbar.appendChild(profileMenu)
+
+  root.appendChild(topbar)
+
+  /// ── Tau binding ──
+  globalTau.on_change((v) => {
+    define el = dom.select('#tau-value')
+    if (el) el.textContent = text.pad_start(String(v), 7, '0')
+  })
+
+  /// ── Main Viewport ──
+  define viewport = dom.create('main', { className: 'viewport', id: 'main-viewport' })
+  root.appendChild(viewport)
+
+  /// ── Dock ──
+  define dock = dom.create('nav', { className: 'dock' })
+  define dockInner = dom.create('div', { className: 'dock-inner' })
+
+  for (const [key, route] of Object.entries(ROUTES)) {
+    if (!route.dock) continue
+    define item = dom.create('button', {
+      className: 'dock-item',
+      id: 'dock-' + key,
+      onClick: () => navigateTo(key)
+    })
+    define icon = dom.create('span', { className: 'dock-icon', text: route.icon })
+    define label = dom.create('span', { className: 'dock-label', text: route.label })
+    item.appendChild(icon)
+    item.appendChild(label)
+    dockInner.appendChild(item)
+  }
+  dock.appendChild(dockInner)
+
+  /// Legal footer inside dock
+  define legalFooter = dom.create('div', { className: 'legal-footer' })
+  legalFooter.innerHTML = '© 2026 DarkWave Studios LLC <span class="legal-separator">·</span> <a href="#terms" onclick="event.preventDefault();navigateTo(\'terms\')">Terms</a> <span class="legal-separator">·</span> <a href="#privacy" onclick="event.preventDefault();navigateTo(\'privacy\')">Privacy</a> <span class="legal-separator">·</span> <a href="https://axiom42.com" target="_blank">API</a> <span class="legal-separator">·</span> <span class="legal-shield">⛊ TrustShield.tech</span> <span class="legal-separator">·</span> Patent Pending'
+  root.appendChild(legalFooter)
+  root.appendChild(dock)
+
+  /// ── Signal Chat Bubble ──
+  define signalBubble = dom.create('button', {
+    className: 'signal-bubble', id: 'signal-bubble',
+    html: '💬',
+    onClick: toggleSignalChat
+  })
+  root.appendChild(signalBubble)
+
+  /// Signal Chat Panel
+  define signalPanel = dom.create('div', { className: 'signal-panel', id: 'signal-panel' })
+  signalPanel.innerHTML = '<div class="signal-panel-header"><span class="signal-panel-title">💬 Signal Chat</span><button class="signal-panel-close" onclick="toggleSignalChat()">✕</button></div><div class="signal-messages" id="signal-messages"><div class="signal-msg incoming"><div class="sender">SYSTEM</div>Welcome to Signal Chat — the Trust Layer community channel.</div></div><div class="signal-input-bar"><input type="text" id="signal-input" placeholder="Type a message..." autocomplete="off"><button class="signal-send" onclick="sendSignalMsg()">→</button></div>'
+  root.appendChild(signalPanel)
+
+  /// ── Auth Overlay ──
+  define authOverlay = dom.create('div', { className: 'auth-overlay', id: 'auth-overlay' })
+  authOverlay.innerHTML = '<div class="auth-card"><div class="auth-header"><div class="auth-logo">⬡</div><h1 class="auth-title">CORTEX</h1><p class="auth-sub">Lume-OS · Deterministic Meta-Operating System</p></div><div class="auth-tabs"><button class="auth-tab active" id="atab-login" onclick="switchAuthTab(\'login\')">Sign In</button><button class="auth-tab" id="atab-signup" onclick="switchAuthTab(\'signup\')">Create Account</button></div><div class="auth-error" id="auth-error"></div><div id="auth-form-login"><div class="auth-field"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email"></div><div class="auth-field"><label>Password</label><input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password"></div><button class="auth-submit" id="auth-submit" onclick="handleAuth()">Sign In</button><div style="display:flex;align-items:center;gap:0.75rem;margin:1rem 0;color:var(--t3);font-size:0.6rem;text-transform:uppercase"><span style="flex:1;height:1px;background:var(--glass-border)"></span>or<span style="flex:1;height:1px;background:var(--glass-border)"></span></div><button style="width:100%;background:var(--card);border:1px solid var(--glass-border);border-radius:8px;padding:0.6rem;color:var(--t2);font-size:0.72rem;cursor:pointer;font-family:var(--sans);transition:all 0.15s" onmouseover="this.style.borderColor=\'rgba(6,182,212,0.2)\';this.style.color=\'var(--t1)\'" onmouseout="this.style.borderColor=\'var(--glass-border)\';this.style.color=\'var(--t2)\'" onclick="window.location.href=\'https://dwtl.io/login?redirect=cortex&callback=\'+encodeURIComponent(window.location.origin)">🔐 Sign in with Trust Layer SSO</button></div><div id="auth-form-signup" style="display:none"><div class="auth-field"><label>Name</label><input type="text" id="auth-name" placeholder="Your name" autocomplete="name"></div><div class="auth-field"><label>Email</label><input type="email" id="auth-email2" placeholder="you@example.com" autocomplete="email"></div><div class="auth-field"><label>Password</label><input type="password" id="auth-pass2" placeholder="Min 8 characters" autocomplete="new-password"></div><button class="auth-submit" onclick="handleSignup()">Create Account</button></div><div class="auth-footer-text">© 2026 DarkWave Studios LLC · Patent Pending</div></div>'
+  root.appendChild(authOverlay)
+
+  /// Hidden file input for avatar upload
+  define fileInput = dom.create('input', { id: 'avatar-file-input', attrs: { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif', style: 'display:none' } })
+  root.appendChild(fileInput)
+
+  dom.mount(root)
+
+  /// Wire avatar upload
+  dom.on('#avatar-file-input', 'change', handleAvatarUpload)
+  dom.on('#pm-upload', 'click', () => { dom.select('#avatar-file-input').click() })
+
+  /// Close profile menu on outside click
+  document.addEventListener('click', (e) => {
+    define menu = dom.select('#profile-menu')
+    define btn = dom.select('#avatar-btn')
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.remove('open')
+    }
+  })
+
+  /// Keyboard shortcut: Cmd+K or Ctrl+K → focus search
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault()
+      navigateTo('home')
+      setTimeout(() => { const el = dom.select('#home-input'); if (el) el.focus() }, 100)
+    }
+  })
+}
+
+/// ── Profile Menu ──
+function toggleProfileMenu() {
+  dom.toggle_class('#profile-menu', 'open')
+}
+
+/// ── Auth Overlay ──
+function showAuthOverlay() {
+  define el = dom.select('#auth-overlay')
+  if (el) el.style.display = 'flex'
+}
+function hideAuthOverlay() {
+  define el = dom.select('#auth-overlay')
+  if (el) el.style.display = 'none'
+}
+function switchAuthTab(tab) {
+  dom.select('#atab-login').classList.toggle('active', tab === 'login')
+  dom.select('#atab-signup').classList.toggle('active', tab === 'signup')
+  dom.select('#auth-form-login').style.display = tab === 'login' ? 'block' : 'none'
+  dom.select('#auth-form-signup').style.display = tab === 'signup' ? 'block' : 'none'
+  dom.select('#auth-error').textContent = ''
+}
+async function handleAuth() {
+  define email = dom.select('#auth-email').value.trim()
+  define pass = dom.select('#auth-pass').value
+  if (!email || !pass) { dom.set_text('#auth-error', 'Email and password required.'); return }
+  define btn = dom.select('#auth-submit')
+  btn.disabled = true; btn.textContent = 'Signing in...'
+  try {
+    define res = await fetch(API_BASE + '/v1/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    })
+    define data = await res.json()
+    if (!res.ok) { dom.set_text('#auth-error', data.error || 'Login failed.'); btn.disabled = false; btn.textContent = 'Sign In'; return }
+    window.localStorage.setItem('axiom_token', data.token)
+    window.localStorage.setItem('axiom_tenant', JSON.stringify(data.tenant))
+    authToken.set(data.token)
+    currentUser.set(data.tenant)
+    hideAuthOverlay()
+    fetchUserProfile().then(() => updateProfileUI())
+    loadConversations()
+    navigateTo('home')
+  } catch (e) {
+    dom.set_text('#auth-error', 'Connection error.')
+    btn.disabled = false; btn.textContent = 'Sign In'
+  }
+}
+async function handleSignup() {
+  define name = dom.select('#auth-name').value.trim()
+  define email = dom.select('#auth-email2').value.trim()
+  define pass = dom.select('#auth-pass2').value
+  if (!email || !pass) { dom.set_text('#auth-error', 'Email and password required.'); return }
+  if (pass.length < 8) { dom.set_text('#auth-error', 'Password must be at least 8 characters.'); return }
+  try {
+    define res = await fetch(API_BASE + '/v1/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass, name })
+    })
+    define data = await res.json()
+    if (!res.ok) { dom.set_text('#auth-error', data.error || 'Signup failed.'); return }
+    window.localStorage.setItem('axiom_token', data.token)
+    window.localStorage.setItem('axiom_tenant', JSON.stringify(data.tenant))
+    authToken.set(data.token)
+    currentUser.set(data.tenant)
+    hideAuthOverlay()
+    fetchUserProfile().then(() => updateProfileUI())
+    loadConversations()
+    navigateTo('home')
+  } catch (e) {
+    dom.set_text('#auth-error', 'Connection error.')
+  }
+}
+
+/// ── Avatar Upload ──
+async function handleAvatarUpload(e) {
+  define file = e.target.files[0]
+  if (!file) return
+  define reader = new FileReader()
+  reader.onload = async (ev) => {
+    define base64 = ev.target.result
+    try {
+      define res = await fetch(API_BASE + '/v1/profile/avatar', {
+        method: 'POST', headers: getAuthHeaders(),
+        body: JSON.stringify({ image: base64 })
+      })
+      if (res.ok) {
+        define data = await res.json()
+        updateAvatarUI(data.avatarUrl || base64)
+      }
+    } catch (err) { console.log('Avatar upload failed') }
+  }
+  reader.readAsDataURL(file)
+}
+
+/// ── Profile UI Updates ──
+function updateProfileUI() {
+  define user = currentUser.get()
+  define profile = userProfile.get()
+  if (!user && !profile) return
+
+  define name = profile?.name || user?.name || user?.email || '?'
+  define email = profile?.email || user?.email || ''
+  define tier = profile?.tier || user?.tier || 'FREE'
+  define avatar = profile?.avatarUrl || null
+  define initial = (name[0] || '?').toUpperCase()
+
+  dom.set_text('#pm-name', name)
+  dom.set_text('#pm-email', email)
+  dom.set_text('#pm-tier', tier)
+
+  if (avatar) {
+    updateAvatarUI(avatar)
+  } else {
+    dom.set_text('#avatar-circle', initial)
+    dom.set_text('#pm-avatar', initial)
+  }
+}
+
+function updateAvatarUI(url) {
+  define circle = dom.select('#avatar-circle')
+  define pmAvatar = dom.select('#pm-avatar')
+  if (circle) { circle.textContent = ''; circle.style.backgroundImage = 'url(' + url + ')'; circle.style.backgroundSize = 'cover'; circle.style.backgroundPosition = 'center' }
+  if (pmAvatar) { pmAvatar.textContent = ''; pmAvatar.style.backgroundImage = 'url(' + url + ')'; pmAvatar.style.backgroundSize = 'cover'; pmAvatar.style.backgroundPosition = 'center' }
+}
+
+/// ── Conversation Loader ──
+async function loadConversations() {
+  define token = authToken.get()
+  if (!token) return
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations', { headers: getAuthHeaders() })
+    if (res.ok) {
+      define data = await res.json()
+      conversations.set(data.conversations || [])
+    }
+  } catch (e) { console.log('Conversations fetch failed') }
+}
+
+/// ── Update active dock item ──
+function updateDock() {
+  define page = currentPage.get()
+  dom.select_all('.dock-item').forEach(el => dom.remove_class(el, 'active'))
+  define active = dom.select('#dock-' + page)
+  if (active) dom.add_class(active, 'active')
+}
+
+/// Render current page
+function renderPage() {
+  define vp = dom.select('#main-viewport')
+  if (!vp) return
+  dom.clear(vp)
+  updateDock()
+
+  define page = currentPage.get()
+  if (page === 'home') renderHome(vp)
+  else if (page === 'chat') renderChat(vp)
+  else if (page === 'explore') renderExplore(vp)
+  else if (page === 'system') renderTrustCenter(vp)
+  else if (page === 'settings') renderSettings(vp)
+  else if (page === 'terms') renderTerms(vp)
+  else if (page === 'privacy') renderPrivacy(vp)
+  else renderHome(vp)
+}
+
+/// ── Signal Chat ──
+function toggleSignalChat() {
+  dom.toggle_class('#signal-panel', 'open')
+}
+
+function sendSignalMsg() {
+  define input = dom.select('#signal-input')
+  define text_val = input.value.trim()
+  if (!text_val) return
+  input.value = ''
+
+  define msgArea = dom.select('#signal-messages')
+  if (!msgArea) return
+
+  define msg = dom.create('div', { className: 'signal-msg outgoing', text: text_val })
+  msgArea.appendChild(msg)
+  msgArea.scrollTop = msgArea.scrollHeight
+
+  /// Simulate response (replace with WebSocket in production)
+  setTimeout(() => {
+    define reply = dom.create('div', { className: 'signal-msg incoming' })
+    reply.innerHTML = '<div class="sender">SIGNAL</div>Message received. Signal Chat WebSocket will be connected in production.'
+    msgArea.appendChild(reply)
+    msgArea.scrollTop = msgArea.scrollHeight
+  }, 800)
+}
+
+/// ── Hallmark Generator ──
+function generateHallmark(name, issuer) {
+  define timestamp = new Date().toISOString()
+  define hashInput = name + '|' + issuer + '|' + timestamp
+  define chars = '0123456789abcdef'
+  let hash = ''
+  for (let i = 0; i < 64; i++) {
+    hash += chars[Math.floor(Math.random() * 16)]
+  }
+  return { name, issuer, timestamp, hash: hash.slice(0, 32), verified: true }
+}
+
+function renderHallmarkBadge(h) {
+  define badge = dom.create('div', { className: 'hallmark' })
+  badge.appendChild(dom.create('div', { className: 'hallmark-shield', text: '⛊' }))
+  define info = dom.create('div', { className: 'hallmark-info' })
+  info.appendChild(dom.create('div', { className: 'hallmark-name', text: h.name }))
+  info.appendChild(dom.create('div', { className: 'hallmark-hash', text: h.hash + '...' }))
+  info.appendChild(dom.create('div', { className: 'hallmark-issuer', text: h.issuer + ' · ' + h.timestamp.slice(0, 10) }))
+  badge.appendChild(info)
+  if (h.verified) badge.appendChild(dom.create('span', { className: 'hallmark-verified', text: '✓' }))
+  return badge
+}
+
+/// ── Legal Pages (Lume-Native) ──
+function renderTerms(container) {
+  define page = dom.create('div', { className: 'page' })
+  page.appendChild(dom.create('h2', { text: 'Terms of Service', styles: { fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.5rem' } }))
+  page.appendChild(dom.create('div', { className: 'card-badge', text: 'Effective: January 1, 2026', styles: { marginBottom: '1rem' } }))
+
+  define sections = [
+    { title: '1. Acceptance of Terms', body: 'By accessing or using Lume Cortex ("Service"), you agree to be bound by these Terms of Service. The Service is provided by DarkWave Studios LLC ("Company"). If you do not agree, do not use the Service.' },
+    { title: '2. Description of Service', body: 'Lume Cortex is a deterministic meta-operating system interface providing access to the Axiom cognitive kernel, knowledge spine, and Trust Layer safety framework. The Service processes queries through a 42-module deterministic pipeline.' },
+    { title: '3. User Accounts', body: 'You must provide accurate information when creating an account. You are responsible for maintaining the confidentiality of your credentials. API keys are provided upon registration and must be stored securely.' },
+    { title: '4. Acceptable Use', body: 'You may not use the Service to: (a) violate any law; (b) transmit malicious code; (c) attempt to circumvent the LDIR safety rulebook; (d) reverse-engineer the deterministic pipeline; (e) exceed your tier rate limits.' },
+    { title: '5. Intellectual Property', body: 'Lume, Axiom, Trust Layer, TrustShield, Synthetic Organisms, and related technologies are protected by five (5) provisional patents (US Patent Pending). All source code is compiled from the Lume programming language. DOI: 10.5281/zenodo.19430898.' },
+    { title: '6. Data & Privacy', body: 'Conversations are stored encrypted. We do not train AI models on your data. The deterministic architecture means your queries produce reproducible, auditable outputs. See our Privacy Policy for details.' },
+    { title: '7. Limitation of Liability', body: 'THE SERVICE IS PROVIDED "AS IS." DARKWAVE STUDIOS LLC SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING FROM USE OF THE SERVICE.' },
+    { title: '8. Contact', body: 'DarkWave Studios LLC · contact@darkwavestudios.com · trustshield.tech' }
+  ]
+  for (const s of sections) {
+    define section = dom.create('div', { styles: { marginBottom: '1rem' } })
+    section.appendChild(dom.create('h3', { text: s.title, styles: { fontSize: '0.82rem', fontWeight: '600', color: 'var(--cyan)', marginBottom: '0.3rem' } }))
+    section.appendChild(dom.create('p', { text: s.body, styles: { fontSize: '0.72rem', color: 'var(--t2)', lineHeight: '1.7' } }))
+    page.appendChild(section)
+  }
+  page.appendChild(dom.create('div', { text: '© 2026 DarkWave Studios LLC · All rights reserved', styles: { fontSize: '0.55rem', fontFamily: 'var(--mono)', color: 'var(--t3)', marginTop: '1.5rem' } }))
+  container.appendChild(page)
+}
+
+function renderPrivacy(container) {
+  define page = dom.create('div', { className: 'page' })
+  page.appendChild(dom.create('h2', { text: 'Privacy Policy', styles: { fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.5rem' } }))
+  page.appendChild(dom.create('div', { className: 'card-badge', text: 'Effective: January 1, 2026', styles: { marginBottom: '1rem' } }))
+
+  define sections = [
+    { title: '1. Information We Collect', body: 'Account data (name, email), conversation history, usage metrics, and API access logs. We do NOT collect biometric data, location data, or third-party tracking cookies.' },
+    { title: '2. How We Use Data', body: 'To provide the Service, enforce rate limits, generate usage analytics, and improve the deterministic knowledge spine. We never use your data to train probabilistic AI models.' },
+    { title: '3. Data Storage', body: 'All data is stored on encrypted servers. Conversations are encrypted at rest. The deterministic architecture ensures all outputs are reproducible and auditable via the Iris observation layer.' },
+    { title: '4. Third-Party Services', body: 'We use: Stripe (payments), Resend (transactional email), Twilio (SMS notifications), and TrustShield.tech (certificate verification). Each operates under their respective privacy policies.' },
+    { title: '5. Data Deletion', body: 'You may delete your account and all associated data at any time via Settings. Deletion is permanent and irreversible. Audit logs are retained for 90 days for compliance.' },
+    { title: '6. Trust Layer Certification', body: 'Lume Cortex operates under the Trust Layer protocol with Ed25519 certificate verification. All safety decisions are governed by the LDIR rulebook (32 rules, 4 tiers) and are fully deterministic.' },
+    { title: '7. Contact', body: 'Privacy inquiries: privacy@darkwavestudios.com · DarkWave Studios LLC' }
+  ]
+  for (const s of sections) {
+    define section = dom.create('div', { styles: { marginBottom: '1rem' } })
+    section.appendChild(dom.create('h3', { text: s.title, styles: { fontSize: '0.82rem', fontWeight: '600', color: 'var(--cyan)', marginBottom: '0.3rem' } }))
+    section.appendChild(dom.create('p', { text: s.body, styles: { fontSize: '0.72rem', color: 'var(--t2)', lineHeight: '1.7' } }))
+    page.appendChild(section)
+  }
+  page.appendChild(dom.create('div', { text: '© 2026 DarkWave Studios LLC · Protected by TrustShield.tech', styles: { fontSize: '0.55rem', fontFamily: 'var(--mono)', color: 'var(--t3)', marginTop: '1.5rem' } }))
+  container.appendChild(page)
+}

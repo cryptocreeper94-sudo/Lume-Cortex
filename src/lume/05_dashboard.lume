@@ -1,0 +1,297 @@
+/// ─── HOME PAGE ──────────────────────────────────────────────
+/// Ecosystem OS landing — greeting, chat, ecosystem apps, news, weather
+
+function renderHome(container) {
+  define page = dom.create('div', { className: 'page' })
+
+  /// ── Hero ──
+  define hero = dom.create('div', { className: 'home-hero' })
+  
+  define hour = new Date().getHours()
+  let greeting = 'Good evening'
+  if (hour < 12) greeting = 'Good morning'
+  else if (hour < 17) greeting = 'Good afternoon'
+  
+  define user = currentUser.get()
+  define name = user?.name || user?.email?.split('@')[0] || 'there'
+  
+  define greetEl = dom.create('h1', { className: 'home-greeting' })
+  greetEl.innerHTML = greeting + ', <strong>' + name + '</strong>'
+  hero.appendChild(greetEl)
+
+  /// ── Chat Input ──
+  define inputWrap = dom.create('div', { className: 'home-input-wrap' })
+  define input = dom.create('input', {
+    className: 'home-input', id: 'home-input',
+    attrs: { type: 'text', placeholder: 'Ask Axiom anything...', autocomplete: 'off' },
+    onKeydown: (e) => { if (e.key === 'Enter') sendHomeMessage() }
+  })
+  define sendBtn = dom.create('button', {
+    className: 'home-send', html: '→',
+    onClick: sendHomeMessage
+  })
+  inputWrap.appendChild(input)
+  inputWrap.appendChild(sendBtn)
+  hero.appendChild(inputWrap)
+  page.appendChild(hero)
+
+  /// ── Quick Actions ──
+  define actions = dom.create('div', { className: 'quick-actions' })
+  define actionData = [
+    { icon: '💬', label: 'New Chat', action: () => { createNewConversation() } },
+    { icon: '📚', label: 'Knowledge', action: () => navigateTo('explore') },
+    { icon: '⛊', label: 'Trust Center', action: () => navigateTo('system') },
+    { icon: '⚙', label: 'Settings', action: () => navigateTo('settings') }
+  ]
+  for (const a of actionData) {
+    define card = dom.create('div', { className: 'quick-action', onClick: a.action })
+    card.appendChild(dom.create('div', { className: 'qa-icon', text: a.icon }))
+    card.appendChild(dom.create('div', { className: 'qa-label', text: a.label }))
+    actions.appendChild(card)
+  }
+  page.appendChild(actions)
+
+  /// ── Featured Ecosystem Apps ──
+  page.appendChild(dom.create('div', { className: 'recent-title', text: 'Featured Apps', styles: { marginTop: '0.5rem', marginBottom: '0.5rem' } }))
+
+  define featuredGrid = dom.create('div', { className: 'featured-grid' })
+  define featured = [
+    { name: 'LumeLine', desc: 'Sharp money tracker & sports line intelligence', url: 'https://lumeline.app', img: 'assets/img/sports.png', badge: 'SPORTS' },
+    { name: 'Pulse', desc: 'Real-time financial analytics & market pulse', url: 'https://darkwavepulse.com', img: 'assets/img/finance.png', badge: 'FINANCE' },
+    { name: 'The Arcade', desc: 'Immersive gaming powered by Trust Layer', url: 'https://darkwavegames.io', img: 'assets/img/gaming.png', badge: 'GAMING' }
+  ]
+  for (const f of featured) {
+    define card = dom.create('div', {
+      className: 'featured-card',
+      onClick: () => window.open(f.url, '_blank')
+    })
+    define imgEl = dom.create('div', { className: 'featured-img' })
+    imgEl.style.backgroundImage = 'url(' + f.img + ')'
+    card.appendChild(imgEl)
+    define content = dom.create('div', { className: 'featured-content' })
+    define topRow = dom.create('div', { styles: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } })
+    topRow.appendChild(dom.create('div', { className: 'featured-name', text: f.name }))
+    topRow.appendChild(dom.create('div', { className: 'card-badge', text: f.badge }))
+    content.appendChild(topRow)
+    content.appendChild(dom.create('div', { className: 'featured-desc', text: f.desc }))
+    card.appendChild(content)
+    featuredGrid.appendChild(card)
+  }
+  page.appendChild(featuredGrid)
+
+  /// ── News & Weather Row ──
+  define infoRow = dom.create('div', { styles: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginTop: '1rem' } })
+
+  /// Weather widget
+  define weatherCard = dom.create('div', { className: 'card' })
+  define weatherH = dom.create('div', { className: 'card-header' })
+  weatherH.appendChild(dom.create('span', { className: 'card-title', text: '☀ Weather' }))
+  weatherH.appendChild(dom.create('span', { className: 'card-badge', text: 'live' }))
+  weatherCard.appendChild(weatherH)
+  define weatherBody = dom.create('div', { styles: { display: 'flex', alignItems: 'center', gap: '0.75rem' } })
+  weatherBody.appendChild(dom.create('div', { text: '72°', styles: { fontSize: '2rem', fontWeight: '800', fontFamily: 'var(--mono)', color: 'var(--cyan)' } }))
+  define weatherInfo = dom.create('div')
+  weatherInfo.appendChild(dom.create('div', { text: 'Nashville, TN', styles: { fontSize: '0.72rem', fontWeight: '600' } }))
+  weatherInfo.appendChild(dom.create('div', { text: 'Partly cloudy · H: 78° L: 61°', styles: { fontSize: '0.6rem', color: 'var(--t2)' } }))
+  weatherInfo.appendChild(dom.create('div', { text: 'Wind: 8 mph SW · Humidity: 42%', styles: { fontSize: '0.5rem', fontFamily: 'var(--mono)', color: 'var(--t3)', marginTop: '0.2rem' } }))
+  weatherBody.appendChild(weatherInfo)
+  weatherCard.appendChild(weatherBody)
+  infoRow.appendChild(weatherCard)
+
+  /// News widget
+  define newsCard = dom.create('div', { className: 'card' })
+  define newsH = dom.create('div', { className: 'card-header' })
+  newsH.appendChild(dom.create('span', { className: 'card-title', text: '📰 Trust Layer News' }))
+  newsH.appendChild(dom.create('span', { className: 'card-badge', text: 'latest' }))
+  newsCard.appendChild(newsH)
+  define newsItems = [
+    'Lume v1.1.0 released — Full-Stack Expansion Block',
+    'Axiom knowledge spine reaches 39,618 topics',
+    'Canon² research archive published on Zenodo',
+    'CHI 2027 paper submission in preparation'
+  ]
+  for (const n of newsItems) {
+    define item = dom.create('div', { styles: { fontSize: '0.62rem', color: 'var(--t2)', padding: '0.2rem 0', borderBottom: '1px solid var(--t4)', display: 'flex', alignItems: 'center', gap: '0.3rem' } })
+    item.appendChild(dom.create('span', { text: '▸', styles: { color: 'var(--cyan)', fontSize: '0.5rem' } }))
+    item.appendChild(dom.create('span', { text: n }))
+    newsCard.appendChild(item)
+  }
+  infoRow.appendChild(newsCard)
+  page.appendChild(infoRow)
+
+  /// ── Ecosystem Carousels ──
+  page.appendChild(dom.create('div', { className: 'recent-title', text: 'Ecosystem · 42 Apps', styles: { marginTop: '1rem', marginBottom: '0.75rem' } }))
+
+  define categories = [
+    { title: 'Security & Core', img: 'assets/img/security.png', badge: 'security', apps: [
+      { name: 'TrustShield', desc: 'Security monitoring & certificates', url: 'https://trustshield.tech' },
+      { name: 'Trust Hub', desc: 'Ecosystem management hub', url: 'https://trusthub.tlid.io' },
+      { name: 'Guardian Scanner', desc: 'Threat detection & analysis', url: 'https://guardianscanner.tlid.io' },
+      { name: 'Guardian Screener', desc: 'Background verification', url: 'https://guardianscreener.tlid.io' },
+      { name: 'TrustVault', desc: 'Secure credential storage', url: 'https://trustvault.studio' },
+      { name: 'TLID.io', desc: 'Core infrastructure hub', url: 'https://tlid.io' }
+    ]},
+    { title: 'Sports & Gaming', img: 'assets/img/sports.png', badge: 'sports', apps: [
+      { name: 'LumeLine', desc: 'Sharp money tracker & line intelligence', url: 'https://lumeline.app' },
+      { name: 'The Arcade', desc: 'Immersive gaming platform', url: 'https://darkwavegames.io' },
+      { name: 'Bomber Golf', desc: 'Long drive 3D golf game', url: 'https://bombergolf.tlid.io' },
+      { name: 'StrikeAgent', desc: 'Sports analytics agent', url: 'https://strikeagent.io' },
+      { name: 'Trust Golf', desc: 'Verified golf community', url: 'https://trustgolf.app' }
+    ]},
+    { title: 'Finance & Analytics', img: 'assets/img/finance.png', badge: 'finance', apps: [
+      { name: 'Pulse', desc: 'Real-time financial analytics', url: 'https://darkwavepulse.com' },
+      { name: 'TradeWorks AI', desc: 'AI-powered trading tools', url: 'https://tradeworksai.io' },
+      { name: 'ORBIT Staffing', desc: 'Workforce management OS', url: 'https://orbitstaffing.io' }
+    ]},
+    { title: 'Creative & Dev', img: 'assets/img/creative.png', badge: 'creative', apps: [
+      { name: 'TrustGen 3D', desc: 'AI 3D asset generation', url: 'https://trustgen.design' },
+      { name: 'DarkWave Studio', desc: 'Lume language IDE', url: 'https://studio.tlid.io' },
+      { name: 'DarkWave Academy', desc: 'Developer education', url: 'https://academy.tlid.io' },
+      { name: 'Strata', desc: 'Research publishing registry', url: 'https://strata.tlid.io' },
+      { name: 'Lume', desc: 'The programming language', url: 'https://lume-lang.com' }
+    ]},
+    { title: 'Social & Experience', img: 'assets/img/social.png', badge: 'social', apps: [
+      { name: 'Signal Chat', desc: 'Real-time encrypted messaging', url: 'https://signalchat.tlid.io' },
+      { name: 'THE VOID', desc: 'Immersive digital experience', url: 'https://intothevoid.app' },
+      { name: 'ThroughTheVeil', desc: 'Interactive storytelling', url: 'https://throughtheveil.tlid.io' },
+      { name: 'Chronicles', desc: 'Legacy publishing platform', url: 'https://yourlegacy.io' },
+      { name: 'Trust Book', desc: 'Verified publishing', url: 'https://trustbook.tlid.io' }
+    ]},
+    { title: 'Auto & Services', img: 'assets/img/auto.png', badge: 'auto', apps: [
+      { name: 'TL Driver Connect', desc: 'Driver management platform', url: 'https://tldriverconnect.com' },
+      { name: 'TORQUE', desc: 'Automotive performance', url: 'https://torque.tlid.io' },
+      { name: 'GarageBot', desc: 'Vehicle maintenance AI', url: 'https://garagebot.io' },
+      { name: 'Lot Ops Pro', desc: 'Dealership operations', url: 'https://lotopspro.io' },
+      { name: 'Nashville Painters', desc: 'Professional painting', url: 'https://nashpaintpros.io' },
+      { name: 'PaintPros', desc: 'Painting platform', url: 'https://paintpros.io' }
+    ]},
+    { title: 'Wellness & Lifestyle', img: 'assets/img/wellness.png', badge: 'wellness', apps: [
+      { name: 'Arbora', desc: 'Mindful wellness platform', url: 'https://arbora.tlid.io' },
+      { name: 'Verdara', desc: 'Green living community', url: 'https://verdara.tlid.io' },
+      { name: 'VedaSolus', desc: 'Holistic health tracking', url: 'https://vedasolus.io' },
+      { name: 'Happy Eats', desc: 'Healthy food discovery', url: 'https://happyeats.app' },
+      { name: 'Brew & Board', desc: 'Coffee & community', url: 'https://brewandboard.coffee' },
+      { name: 'TrustHome', desc: 'Smart home management', url: 'https://trusthome.tlid.io' },
+      { name: 'Orby Commander', desc: 'AI assistant hub', url: 'https://getorby.io' }
+    ]}
+  ]
+
+  for (const cat of categories) {
+    define section = dom.create('div', { className: 'eco-section' })
+
+    define header = dom.create('div', { className: 'eco-section-header' })
+    define headerImg = dom.create('div', { className: 'eco-section-img' })
+    headerImg.style.backgroundImage = 'url(' + cat.img + ')'
+    header.appendChild(headerImg)
+    header.appendChild(dom.create('div', { className: 'eco-section-title', text: cat.title }))
+    header.appendChild(dom.create('div', { className: 'eco-section-count', text: cat.apps.length + ' apps' }))
+    section.appendChild(header)
+
+    define carousel = dom.create('div', { className: 'eco-carousel' })
+    for (const app of cat.apps) {
+      define card = dom.create('div', {
+        className: 'eco-card',
+        onClick: () => window.open(app.url, '_blank')
+      })
+      define cardImg = dom.create('div', { className: 'eco-card-img' })
+      cardImg.style.backgroundImage = 'url(' + cat.img + ')'
+      card.appendChild(cardImg)
+
+      define body = dom.create('div', { className: 'eco-card-body' })
+      body.appendChild(dom.create('div', { className: 'eco-card-name', text: app.name }))
+      body.appendChild(dom.create('div', { className: 'eco-card-desc', text: app.desc }))
+      body.appendChild(dom.create('div', { className: 'eco-card-badge badge-' + cat.badge, text: cat.title }))
+      card.appendChild(body)
+      carousel.appendChild(card)
+    }
+    section.appendChild(carousel)
+    page.appendChild(section)
+  }
+
+  /// ── Recent Conversations ──
+  define recentSection = dom.create('div', { className: 'recent-section', styles: { marginTop: '1rem' } })
+  recentSection.appendChild(dom.create('div', { className: 'recent-title', text: 'Recent Conversations' }))
+  
+  define recentList = dom.create('div', { id: 'recent-list' })
+  define convs = conversations.get()
+  if (convs && convs.length > 0) {
+    define shown = convs.slice(0, 5)
+    for (const c of shown) {
+      define item = dom.create('div', {
+        className: 'recent-item',
+        onClick: () => { activeConversation.set(c); navigateTo('chat') }
+      })
+      item.appendChild(dom.create('span', { className: 'recent-icon', text: '💬' }))
+      item.appendChild(dom.create('span', { className: 'recent-label', text: c.title || 'Untitled' }))
+      item.appendChild(dom.create('span', { className: 'recent-meta', text: (c.turn_count || 0) + ' turns' }))
+      recentList.appendChild(item)
+    }
+  } else {
+    recentList.appendChild(dom.create('div', {
+      text: 'No conversations yet — type above to start one.',
+      styles: { fontSize: '0.72rem', color: 'var(--t3)', padding: '0.4rem 0.8rem' }
+    }))
+  }
+  recentSection.appendChild(recentList)
+  page.appendChild(recentSection)
+
+  /// ── System Status Bar ──
+  define statusBar = dom.create('div', {
+    className: 'system-status-bar',
+    onClick: () => navigateTo('system')
+  })
+  statusBar.appendChild(dom.create('div', { className: 'ss-dot' }))
+  statusBar.appendChild(dom.create('span', { className: 'ss-text', text: 'All systems nominal — 39,618 topics · 11 agents · 42 ecosystem apps · 0 violations' }))
+  statusBar.appendChild(dom.create('span', { className: 'ss-badge', text: 'Deterministic' }))
+  page.appendChild(statusBar)
+
+  container.appendChild(page)
+}
+
+/// ── Send message from home input ──
+async function sendHomeMessage() {
+  define input = dom.select('#home-input')
+  define text_val = input.value.trim()
+  if (!text_val) return
+  input.value = ''
+
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({ title: text_val.slice(0, 50) })
+    })
+    define data = await res.json()
+    if (!data.conversation) return
+
+    define conv = data.conversation
+    activeConversation.set(conv)
+
+    await fetch(API_BASE + '/v1/conversations/' + conv.id + '/speak', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({ input: text_val })
+    })
+
+    await loadConversations()
+    navigateTo('chat')
+  } catch (e) {
+    console.log('Home message error:', e.message)
+  }
+}
+
+/// Create new conversation and navigate to chat
+async function createNewConversation() {
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({ title: 'New Conversation' })
+    })
+    define data = await res.json()
+    if (data.conversation) {
+      activeConversation.set(data.conversation)
+      await loadConversations()
+      navigateTo('chat')
+    }
+  } catch (e) {
+    console.log('Create conversation error:', e.message)
+  }
+}

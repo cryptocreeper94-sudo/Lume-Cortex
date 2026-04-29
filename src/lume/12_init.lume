@@ -1,0 +1,38 @@
+/// ─── INITIALIZATION ─────────────────────────────────────────
+/// Entry point — auth check → boot → home
+
+dom.ready(() => {
+  /// Build the app shell
+  buildShell()
+
+  /// Check auth
+  define token = authToken.get()
+  if (!token) {
+    showAuthOverlay()
+    return
+  }
+
+  /// Fetch profile in background
+  fetchUserProfile().then(() => {
+    updateProfileUI()
+  })
+
+  /// Load conversations
+  loadConversations()
+
+  /// Check if user has already booted (session)
+  define skipBoot = window.sessionStorage.getItem('cortex-booted')
+
+  if (skipBoot) {
+    booted.set(true)
+    let hash = window.location.hash.slice(1) || 'home'
+    if (hash === 'boot') hash = 'home'
+    currentPage.set(hash)
+    renderPage()
+  } else {
+    runBootSequence()
+    booted.on_change((v) => {
+      if (v) window.sessionStorage.setItem('cortex-booted', '1')
+    })
+  }
+})
