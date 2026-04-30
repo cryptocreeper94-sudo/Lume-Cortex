@@ -2652,48 +2652,60 @@ function renderAdmin(container) {
 
   const fleetGrid = dom.create('div', { className: 'fleet-grid' })
   const fleetApps = [
+    // ── Core Infrastructure (6) ──
+    { name: 'Lume', url: 'lume-lang.com', cat: 'Core' },
+    { name: 'Lume Cortex', url: 'lume-cortex.onrender.com', cat: 'Core' },
     { name: 'Axiom', url: 'axiom42.com', cat: 'Core' },
+    { name: 'Trust Layer', url: 'dwtl.io', cat: 'Core' },
+    { name: 'TLID.io', url: 'tlid.io', cat: 'Core' },
     { name: 'Trust Hub', url: 'trusthub.tlid.io', cat: 'Core' },
-    { name: 'TrustShield', url: 'trustshield.tech', cat: 'Security' },
-    { name: 'Signal Chat', url: 'signalchat.tlid.io', cat: 'Social' },
-    { name: 'LumeLine', url: 'lumeline.app', cat: 'Sports' },
-    { name: 'Pulse', url: 'darkwavepulse.com', cat: 'Finance' },
-    { name: 'The Arcade', url: 'darkwavegames.io', cat: 'Gaming' },
+    // ── AI & Creative (4) ──
+    { name: 'Axiom Studio', url: 'studio.axiom42.com', cat: 'AI' },
     { name: 'TrustGen 3D', url: 'trustgen.design', cat: 'Creative' },
-    { name: 'Bomber Golf', url: 'bombergolf.tlid.io', cat: 'Gaming' },
-    { name: 'DarkWave Studio', url: 'studio.tlid.io', cat: 'Dev' },
-    { name: 'DarkWave Academy', url: 'academy.tlid.io', cat: 'Education' },
-    { name: 'Strata', url: 'strata.tlid.io', cat: 'Research' },
-    { name: 'TL Driver', url: 'tldriverconnect.com', cat: 'Auto' },
-    { name: 'ORBIT', url: 'orbitstaffing.io', cat: 'HR' },
-    { name: 'TradeWorks AI', url: 'tradeworksai.io', cat: 'Finance' },
     { name: 'Orby', url: 'getorby.io', cat: 'AI' },
-    { name: 'Arbora', url: 'arbora.tlid.io', cat: 'Wellness' },
-    { name: 'Happy Eats', url: 'happyeats.app', cat: 'Food' },
-    { name: 'Brew & Board', url: 'brewandboard.coffee', cat: 'Food' },
-    { name: 'TrustHome', url: 'trusthome.tlid.io', cat: 'Home' },
-    { name: 'Trust Book', url: 'trustbook.tlid.io', cat: 'Publish' },
-    { name: 'THE VOID', url: 'intothevoid.app', cat: 'XP' },
-    { name: 'TORQUE', url: 'torque.tlid.io', cat: 'Auto' },
-    { name: 'StrikeAgent', url: 'strikeagent.io', cat: 'Sports' },
-    { name: 'Trust Golf', url: 'trustgolf.app', cat: 'Sports' },
-    { name: 'GarageBot', url: 'garagebot.io', cat: 'Auto' },
+    { name: 'DarkWave Studio', url: 'studio.tlid.io', cat: 'Dev' },
+    // ── Finance (4) ──
+    { name: 'Pulse', url: 'darkwavepulse.com', cat: 'Finance' },
+    { name: 'StrikeAgent', url: 'strikeagent.io', cat: 'Finance' },
+    { name: 'TradeWorks AI', url: 'tradeworksai.io', cat: 'Finance' },
+    { name: 'TrustVault', url: 'trustvault.studio', cat: 'Finance' },
+    // ── Security (3) ──
+    { name: 'TrustShield', url: 'trustshield.tech', cat: 'Security' },
     { name: 'Guardian Scan', url: 'guardianscanner.tlid.io', cat: 'Security' },
     { name: 'Guardian Screen', url: 'guardianscreener.tlid.io', cat: 'Security' },
-    { name: 'TrustVault', url: 'trustvault.studio', cat: 'Security' },
-    { name: 'Chronicles', url: 'yourlegacy.io', cat: 'Publish' },
-    { name: 'ThroughTheVeil', url: 'throughtheveil.tlid.io', cat: 'XP' },
-    { name: 'Verdara', url: 'verdara.tlid.io', cat: 'Wellness' },
-    { name: 'VedaSolus', url: 'vedasolus.io', cat: 'Wellness' },
+    // ── Social & Media (2) ──
+    { name: 'Signal Chat', url: 'signalchat.tlid.io', cat: 'Social' },
+    { name: 'SignalCast', url: 'signalcast.tlid.io', cat: 'Social' },
+    // ── Sports & Gaming (4) ──
+    { name: 'LumeLine', url: 'lumeline.app', cat: 'Sports' },
+    { name: 'Trust Golf', url: 'trustgolf.app', cat: 'Sports' },
+    { name: 'Bomber Golf', url: 'bombergolf.tlid.io', cat: 'Gaming' },
+    { name: 'The Arcade', url: 'darkwavegames.io', cat: 'Gaming' },
+    // ── Automotive (5) ──
+    { name: 'TL Driver', url: 'tldriverconnect.com', cat: 'Auto' },
+    { name: 'Driver Tools', url: 'driver.tlid.io', cat: 'Auto' },
+    { name: 'GarageBot', url: 'garagebot.io', cat: 'Auto' },
+    { name: 'Lot Ops Pro', url: 'lotopspro.io', cat: 'Auto' },
+    { name: 'TORQUE', url: 'torque.tlid.io', cat: 'Auto' },
+    // ── Business Services (4) ──
+    { name: 'ORBIT', url: 'orbitstaffing.io', cat: 'HR' },
+    { name: 'Arbora', url: 'arbora.tlid.io', cat: 'Services' },
     { name: 'Nashville Paint', url: 'nashpaintpros.io', cat: 'Services' },
     { name: 'PaintPros', url: 'paintpros.io', cat: 'Services' },
-    { name: 'Lot Ops Pro', url: 'lotopspro.io', cat: 'Auto' },
-    { name: 'Lume', url: 'lume-lang.com', cat: 'Core' },
-    { name: 'Cortex', url: 'lume-cortex.com', cat: 'Core' },
-    { name: 'TLID.io', url: 'tlid.io', cat: 'Core' },
-    { name: 'DWTL.io', url: 'dwtl.io', cat: 'Auth' },
-    { name: 'Lume Cortex', url: 'lume-cortex.com', cat: 'Core' },
-    { name: 'Trust Layer', url: 'dwtl.io', cat: 'Auth' }
+    // ── Food & Beverage (2) ──
+    { name: 'Happy Eats', url: 'happyeats.app', cat: 'Food' },
+    { name: 'Brew & Board', url: 'brewandboard.coffee', cat: 'Food' },
+    // ── Wellness & Lifestyle (3) ──
+    { name: 'THE VOID', url: 'intothevoid.app', cat: 'Wellness' },
+    { name: 'Verdara', url: 'verdara.tlid.io', cat: 'Wellness' },
+    { name: 'VedaSolus', url: 'vedasolus.io', cat: 'Wellness' },
+    // ── Publishing & Experience (3) ──
+    { name: 'Trust Book', url: 'trustbook.tlid.io', cat: 'Publish' },
+    { name: 'Chronicles', url: 'yourlegacy.io', cat: 'Publish' },
+    { name: 'ThroughTheVeil', url: 'throughtheveil.tlid.io', cat: 'XP' },
+    // ── Home & Education (2) ──
+    { name: 'TrustHome', url: 'trusthome.tlid.io', cat: 'Home' },
+    { name: 'DarkWave Academy', url: 'academy.tlid.io', cat: 'Education' }
   ]
 
   for (const app of fleetApps) {
