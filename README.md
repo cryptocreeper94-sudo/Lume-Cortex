@@ -2,34 +2,34 @@
 
 **The Deterministic Meta-Operating System**
 
-Lume Cortex is the OS-style control surface for Lume-OS — a zero-dependency, deterministic meta-operating system built natively in the Lume programming language. Powered by the Axiom cognitive kernel (69,463 topics across 69 domains, 42-module pipeline, 17 specialty agents). Trust Layer certified. Patent pending.
+Lume Cortex is the OS-style control surface for Lume-OS â€” a zero-dependency, deterministic meta-operating system built natively in the Lume programming language. Powered by the Axiom cognitive kernel (60,600 topics across 74 domains, 42-module pipeline, 17 specialty agents). Trust Layer certified. Patent pending.
 
-**© 2026 DarkWave Studios LLC** · [lume-cortex.com](https://lume-cortex.com) · [trustshield.tech](https://trustshield.tech)
+**Â© 2026 DarkWave Studios LLC** Â· [lume-cortex.com](https://lume-cortex.com) Â· [trustshield.tech](https://trustshield.tech)
 
 ---
 
 ## Architecture
 
-- **Runtime**: Lume v1.1.0 · Cortex Edition
+- **Runtime**: Lume v1.1.0 Â· Cortex Edition
 - **Compiler**: Lume Compiler v0.8.1
 - **Bundle**: Zero-dependency, deterministic (159 KB)
 - **Backend**: Axiom API (axiom42.com)
-- **Knowledge**: 69,463 topics · 69 domains · 16.77 MB compiled
-- **Trust**: TrustShield.tech · Ed25519 certificates
+- **Knowledge**: 60,600 topics Â· 74 domains Â· 19.58 MB compiled
+- **Trust**: TrustShield.tech Â· Ed25519 certificates
 - **Safety**: LDIR Rulebook (32 rules, 4 tiers)
 
 ## Features
 
-- 🏠 **Home** — Ecosystem dashboard with featured apps, news, weather
-- 💬 **Chat** — Multi-conversation Axiom AI with branded agent personality ("Hey, I'm Axiom!")
-- 📚 **Explore** — 69,463-topic knowledge browser across 69 domains
-- ⛊ **Trust Center** — System health, LDIR, safety monitoring
-- ⚙ **Settings** — Profile, billing, hallmarks, system info
-- 🔐 **Auth** — SSO + email/password with Trust Layer integration
-- 💳 **Billing** — Stripe-powered tier management (Free/Pro/Enterprise)
-- 📡 **Signal Chat** — Real-time community messaging widget
-- 🏗 **42 Ecosystem Apps** — Categorized carousels
-- 🔒 **Admin Command Center** — Hidden developer portal (triple-click shield + PIN)
+- ðŸ  **Home** â€” Ecosystem dashboard with featured apps, news, weather
+- ðŸ’¬ **Chat** â€” Multi-conversation Axiom AI with branded agent personality ("Hey, I'm Axiom!")
+- ðŸ“š **Explore** â€” 60,600-topic knowledge browser across 74 domains
+- â›Š **Trust Center** â€” System health, LDIR, safety monitoring
+- âš™ **Settings** â€” Profile, billing, hallmarks, system info
+- ðŸ” **Auth** â€” SSO + email/password with Trust Layer integration
+- ðŸ’³ **Billing** â€” Stripe-powered tier management (Free/Pro/Enterprise)
+- ðŸ“¡ **Signal Chat** â€” Real-time community messaging widget
+- ðŸ— **42 Ecosystem Apps** â€” Categorized carousels
+- ðŸ”’ **Admin Command Center** â€” Hidden developer portal (triple-click shield + PIN)
 
 ## Knowledge Domains
 
@@ -45,7 +45,7 @@ Lume Cortex is the OS-style control surface for Lume-OS — a zero-dependency, d
 | **Lume Ecosystem** | Lume Core, Coding, Practical Knowledge | 1,000+ |
 | **Expanded** | Interdisciplinary Synthesis, Universal, Futures & Foresight | 2,400+ |
 
-**Total: 69,463 topics · 69 packs · 16.77 MB compiled knowledge**
+**Total: 60,600 topics Â· 74 packs Â· 19.58 MB compiled knowledge**
 
 ## Stack
 
@@ -69,9 +69,9 @@ node build.js
 ```
 
 All 3 validation stages must pass:
-1. **Syntax Gate** — valid JavaScript structure
-2. **Structural Validation** — balanced braces/brackets
-3. **VM Execution** — clean execution in Node.js sandbox
+1. **Syntax Gate** â€” valid JavaScript structure
+2. **Structural Validation** â€” balanced braces/brackets
+3. **VM Execution** â€” clean execution in Node.js sandbox
 
 ## SEO
 
@@ -91,10 +91,10 @@ All 3 validation stages must pass:
 ## Intellectual Property
 
 **Patent Pending:**
-- U.S. Pat. App. No. 64/032,339 — Lume-V
-- U.S. Pat. App. No. 64/047,512 — Lume Core
-- U.S. Pat. App. No. 64/047,467 — Axiom
-- U.S. Pat. App. No. 64/047,496 — Lume-X
-- U.S. Pat. App. No. 64/047,536 — Synthetic Organisms
+- U.S. Pat. App. No. 64/032,339 â€” Lume-V
+- U.S. Pat. App. No. 64/047,512 â€” Lume Core
+- U.S. Pat. App. No. 64/047,467 â€” Axiom
+- U.S. Pat. App. No. 64/047,496 â€” Lume-X
+- U.S. Pat. App. No. 64/047,536 â€” Synthetic Organisms
 
-© 2026 DarkWave Studios LLC. All rights reserved.
+Â© 2026 DarkWave Studios LLC. All rights reserved.
