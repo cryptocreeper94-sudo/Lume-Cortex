@@ -14,9 +14,9 @@ function renderExplore(container) {
   define metrics = dom.create('div', { className: 'metric-grid', styles: { marginBottom: '1.25rem' } })
   define metricData = [
     { value: '181,282', label: 'Topics', color: 'var(--cyan)' },
-    { value: '80', label: 'Packs', color: 'var(--teal)' },
-    { value: '10', label: 'Domains', color: 'var(--purple)' },
-    { value: '11', label: 'Agents', color: 'var(--green)' }
+    { value: '149', label: 'Packs', color: 'var(--teal)' },
+    { value: '17', label: 'Domains', color: 'var(--purple)' },
+    { value: '17', label: 'Agents', color: 'var(--green)' }
   ]
   for (const m of metricData) {
     define card = dom.create('div', { className: 'metric-card' })
@@ -37,16 +37,23 @@ function renderExplore(container) {
   /// Domain Grid
   page.appendChild(dom.create('div', { className: 'recent-title', text: 'Knowledge Domains', styles: { marginBottom: '0.5rem' } }))
   define domains = [
-    { icon: '🔬', name: 'Science & Technology', topics: 5650, packs: 12 },
-    { icon: '⚕️', name: 'Medical & Health', topics: 4800, packs: 10 },
-    { icon: '⚖️', name: 'Legal & Regulatory', topics: 4200, packs: 9 },
-    { icon: '💼', name: 'Business & Startup', topics: 4593, packs: 9 },
-    { icon: '🎨', name: 'Creative & Arts', topics: 3800, packs: 7 },
-    { icon: '📖', name: 'Education & Learning', topics: 3600, packs: 7 },
-    { icon: '💡', name: 'Philosophy & Ethics', topics: 3500, packs: 7 },
-    { icon: '₿', name: 'Crypto & Blockchain', topics: 3000, packs: 6 },
-    { icon: '🏆', name: 'Sports & Athletics', topics: 2067, packs: 2 },
-    { icon: '🏠', name: 'Home & Auto Repair', topics: 1500, packs: 3 }
+    { icon: '🔬', name: 'Science & Technology', topics: 18200, packs: 14 },
+    { icon: '⚕️', name: 'Medical & Health', topics: 15800, packs: 12 },
+    { icon: '⚖️', name: 'Legal & Regulatory', topics: 12400, packs: 10 },
+    { icon: '💼', name: 'Business & Finance', topics: 14200, packs: 11 },
+    { icon: '🎨', name: 'Creative & Arts', topics: 9800, packs: 8 },
+    { icon: '📖', name: 'Education & Learning', topics: 10600, packs: 9 },
+    { icon: '💡', name: 'Philosophy & Ethics', topics: 8500, packs: 7 },
+    { icon: '₿', name: 'Crypto & Blockchain', topics: 11200, packs: 9 },
+    { icon: '🏆', name: 'Sports & Athletics', topics: 8067, packs: 6 },
+    { icon: '🏠', name: 'Home & Auto Repair', topics: 6500, packs: 5 },
+    { icon: '⚡', name: 'Energy & Infrastructure', topics: 14500, packs: 12 },
+    { icon: '🚀', name: 'Aerospace & Defense', topics: 11800, packs: 10 },
+    { icon: '🌾', name: 'Agriculture & Food', topics: 9200, packs: 8 },
+    { icon: '🛡️', name: 'Cybersecurity', topics: 10500, packs: 8 },
+    { icon: '🏛️', name: 'Government & Policy', topics: 8400, packs: 7 },
+    { icon: '⚓', name: 'Maritime & Logistics', topics: 6015, packs: 5 },
+    { icon: '🧬', name: 'Life Sciences & Biotech', topics: 5600, packs: 8 }
   ]
 
   define grid = dom.create('div', { className: 'domain-grid', id: 'domain-grid' })
@@ -62,17 +69,23 @@ function renderExplore(container) {
   /// Agent Catalog
   page.appendChild(dom.create('div', { className: 'recent-title', text: 'Specialty Agents', styles: { marginTop: '1.5rem', marginBottom: '0.5rem' } }))
   define agents = [
-    { name: 'Core Knowledge', desc: 'General-purpose deterministic knowledge', tier: 'FREE', topics: '10,000+' },
-    { name: 'Science Agent', desc: 'Physics, chemistry, biology, astronomy', tier: 'FREE', topics: '5,650' },
-    { name: 'Medical Agent', desc: 'Clinical, pharmaceutical, anatomy', tier: 'PRO', topics: '4,800' },
-    { name: 'Legal Agent', desc: 'Constitutional, IP, contract law', tier: 'PRO', topics: '4,200' },
-    { name: 'Business Agent', desc: 'Strategy, startup, finance, marketing', tier: 'FREE', topics: '4,593' },
-    { name: 'Creative Agent', desc: 'Writing, design, music theory', tier: 'FREE', topics: '3,800' },
-    { name: 'Education Agent', desc: 'Pedagogy, curriculum, assessment', tier: 'FREE', topics: '3,600' },
-    { name: 'Philosophy Agent', desc: 'Ethics, logic, epistemology', tier: 'FREE', topics: '3,500' },
-    { name: 'Sports Agent', desc: 'NFL, NBA, MLB, NHL, soccer, golf', tier: 'FREE', topics: '2,067' },
-    { name: 'Crypto Agent', desc: 'DeFi, smart contracts, tokenomics', tier: 'PRO', topics: '3,000' },
-    { name: 'Repair Agent', desc: 'Home, equipment, automotive repair', tier: 'FREE', topics: '1,500' }
+    { name: 'Core Knowledge', desc: 'General-purpose deterministic knowledge', tier: 'FREE', topics: '18,200+' },
+    { name: 'Science Agent', desc: 'Physics, chemistry, biology, astronomy', tier: 'FREE', topics: '18,200' },
+    { name: 'Medical Agent', desc: 'Clinical, pharmaceutical, anatomy', tier: 'PRO', topics: '15,800' },
+    { name: 'Legal Agent', desc: 'Constitutional, IP, contract law', tier: 'PRO', topics: '12,400' },
+    { name: 'Business Agent', desc: 'Strategy, startup, finance, marketing', tier: 'FREE', topics: '14,200' },
+    { name: 'Creative Agent', desc: 'Writing, design, music theory', tier: 'FREE', topics: '9,800' },
+    { name: 'Education Agent', desc: 'Pedagogy, curriculum, assessment', tier: 'FREE', topics: '10,600' },
+    { name: 'Philosophy Agent', desc: 'Ethics, logic, epistemology', tier: 'FREE', topics: '8,500' },
+    { name: 'Sports Agent', desc: 'NFL, NBA, MLB, NHL, soccer, golf', tier: 'FREE', topics: '8,067' },
+    { name: 'Crypto Agent', desc: 'DeFi, smart contracts, tokenomics', tier: 'PRO', topics: '11,200' },
+    { name: 'Repair Agent', desc: 'Home, equipment, automotive repair', tier: 'FREE', topics: '6,500' },
+    { name: 'Energy Agent', desc: 'Grid management, renewables, Meridian Canon', tier: 'PRO', topics: '14,500' },
+    { name: 'Aerospace Agent', desc: 'Aviation, space ops, defense systems', tier: 'PRO', topics: '11,800' },
+    { name: 'Agriculture Agent', desc: 'Crop science, precision farming, food safety', tier: 'PRO', topics: '9,200' },
+    { name: 'Cyber Agent', desc: 'Threat intel, forensics, compliance', tier: 'PRO', topics: '10,500' },
+    { name: 'Government Agent', desc: 'Policy analysis, regulation, governance', tier: 'PRO', topics: '8,400' },
+    { name: 'Maritime Agent', desc: 'Shipping, logistics, port operations', tier: 'PRO', topics: '6,015' }
   ]
 
   define agentGrid = dom.create('div', { className: 'agent-grid', id: 'agent-grid' })

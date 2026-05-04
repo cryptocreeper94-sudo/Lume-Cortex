@@ -175,7 +175,7 @@ function runBootSequence() {
   addLine('  Words: ~1,100,000 deterministic patterns', 'ok', 100)
   addLine('  42-module runtime: 6 layers initialized', 'ok', 100)
   addLine('  Intent Router: deterministic mode', 'ok', 80)
-  addLine('  Agent registry: 11 specialty agents online', 'ok', 100)
+  addLine('  Agent registry: 17 specialty agents online', 'ok', 100)
   addLine('  Spine hash: ' + genHash().slice(0, 32) + '...', 'hash', 80)
   setProgress(72)
 
