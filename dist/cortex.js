@@ -1422,8 +1422,8 @@ function runBootSequence() {
   addLine('', '', 200)
   addLine('[Phase 4] AXIOM COGNITIVE KERNEL', 'title', 300)
   addLine('  Loading knowledge spine...', 'info', 200)
-  addLine('  Domains: 10 categories indexed', 'ok', 100)
-  addLine('  Packs: 80 domain packs loaded', 'ok', 100)
+  addLine('  Domains: 149 domains indexed', 'ok', 100)
+  addLine('  Packs: 149 domain packs loaded', 'ok', 100)
   addLine('  Topics: 181,282 knowledge entries verified', 'ok', 150)
   addLine('  Words: ~1,100,000 deterministic patterns', 'ok', 100)
   addLine('  42-module runtime: 6 layers initialized', 'ok', 100)
@@ -1950,7 +1950,7 @@ async function loadChatConversation(id, title) {
     // If no turns yet, show agent greeting
     if (turns.length === 0) {
       const agent = activeAgent.get()
-      appendChatMsg('Hey! I\'m ' + agent.name + '. I have 181,282 topics across 67 knowledge domains ready to go. What can I help you with?', 'agent')
+      appendChatMsg('Hey! I\'m ' + agent.name + '. I have 181,282 topics across 149 knowledge domains ready to go. What can I help you with?', 'agent')
     }
 
     for (const t of turns) {

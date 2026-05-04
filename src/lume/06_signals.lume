@@ -173,7 +173,7 @@ async function loadChatConversation(id, title) {
     /// If no turns yet, show agent greeting
     if (turns.length === 0) {
       define agent = activeAgent.get()
-      appendChatMsg('Hey! I\'m ' + agent.name + '. I have 181,282 topics across 67 knowledge domains ready to go. What can I help you with?', 'agent')
+      appendChatMsg('Hey! I\'m ' + agent.name + '. I have 181,282 topics across 149 knowledge domains ready to go. What can I help you with?', 'agent')
     }
 
     for (const t of turns) {
