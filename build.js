@@ -28,7 +28,7 @@ let source = files.map(f => readFileSync(resolve(lumeDir, f), 'utf-8')).join('\n
 
 // ── Transform .lume → JS ──
 function transformLume(src) {
-    let lines = src.split('\n')
+    let lines = src.split('\n').map(l => l.replace(/\r$/, ''))
     let output = []
     let inMultiLineString = false
     let multiLineBuffer = []

@@ -966,9 +966,9 @@ async function handleSignup() {
 }
 
 // ── Firebase OAuth (Google / GitHub) ──
-const firebaseLoaded = false
-const firebaseApp = null
-const firebaseAuthInstance = null
+let firebaseLoaded = false
+let firebaseApp = null
+let firebaseAuthInstance = null
 
 async function ensureFirebase() {
   if (firebaseLoaded) return
