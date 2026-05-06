@@ -1009,7 +1009,7 @@ async function handleGoogleLogin() {
     provider.addScope('profile')
     const result = await firebaseAuthInstance.signInWithPopup(provider)
     const idToken = await result.user.getIdToken()
-    const res = await fetch(API_BASE + '/api/auth/firebase', {
+    const res = await fetch(API_BASE + '/v1/auth/firebase', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken })
     })
@@ -1035,7 +1035,7 @@ async function handleGitHubLogin() {
     const provider = new firebase.auth.GithubAuthProvider()
     const result = await firebaseAuthInstance.signInWithPopup(provider)
     const idToken = await result.user.getIdToken()
-    const res = await fetch(API_BASE + '/api/auth/firebase', {
+    const res = await fetch(API_BASE + '/v1/auth/firebase', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken })
     })
