@@ -196,12 +196,8 @@ dom.inject_css("
 
   /* ── Responsive ── */
   @media (max-width: 768px) {
-    .search-trigger { display: none; }
-    .tau-badge { display: none; }
     .chat-layout { flex-direction: column; }
     .chat-sidebar { width: 100%; height: auto; max-height: 180px; border-right: none; border-bottom: 1px solid var(--glass-border); }
-    .dock-item { padding: 0.4rem 0.6rem; min-width: 48px; }
-    .dock-label { font-size: 0.45rem; }
     .page { padding: 1rem; }
     .home-greeting { font-size: 1.2rem; }
     .home-hero { padding: 2rem 0 1.5rem; }
@@ -213,8 +209,6 @@ dom.inject_css("
     .metric-grid { grid-template-columns: 1fr 1fr; }
     .domain-grid { grid-template-columns: 1fr; }
     .agent-grid { grid-template-columns: 1fr; }
-    .dock-inner { gap: 0; }
-    .dock-item { padding: 0.35rem 0.5rem; }
     .boot-console { width: 95%; }
     .boot-body { min-height: 240px; font-size: 0.65rem; }
   }

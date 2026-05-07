@@ -195,27 +195,69 @@ dom.inject_css(`
   /* ── App Layout ── */
   #cortex-root { display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; }
 
-  /* ── Topbar ── */
-  .topbar { height: var(--topbar-h); background: var(--surface); border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 1rem; gap: 0.75rem; z-index: 50; flex-shrink: 0; position: relative; }
-  .topbar-brand { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
-  .brand-logo { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--cyan), var(--teal)); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; color: #000; }
-  .brand-name { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.12em; background: linear-gradient(135deg, var(--cyan), var(--teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  /* ── Cockpit Status Bar (mobile-first) ── */
+  .cockpit-status { position: sticky; top: 0; z-index: 50; height: var(--topbar-h); background: linear-gradient(to bottom, rgba(2,2,10,0.96), rgba(2,2,10,0.92)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between; padding: 0 0.75rem; flex-shrink: 0; }
+  body.light .cockpit-status { background: linear-gradient(to bottom, rgba(248,249,252,0.96), rgba(248,249,252,0.92)); }
 
-  .search-trigger { flex: 1; max-width: 560px; margin: 0 auto; background: var(--card); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0 1rem; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s; color: var(--t3); font-family: var(--sans); font-size: 0.82rem; height: 40px; }
-  .search-trigger:focus-within { border-color: rgba(6,182,212,0.3); background: var(--elevated); box-shadow: 0 0 0 3px rgba(6,182,212,0.06); }
-  .topbar-search-input { flex: 1; background: transparent; border: none; color: var(--t1); font-family: var(--sans); font-size: 0.82rem; outline: none; height: 100%; }
-  .topbar-search-input::placeholder { color: var(--t3); }
-  .search-shortcut { font-size: 0.55rem; font-family: var(--mono); padding: 0.15rem 0.4rem; border-radius: 4px; background: var(--t4); color: var(--t3); flex-shrink: 0; }
+  .cs-left { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+  .cs-brand { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+  .brand-logo { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, var(--cyan), var(--teal)); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 900; color: #000; }
+  .brand-name { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.12em; background: linear-gradient(135deg, var(--cyan), var(--teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .cs-time { font-size: 0.65rem; font-family: var(--mono); color: var(--t3); display: flex; align-items: center; gap: 0.3rem; }
 
-  .profile-area { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
-  .tau-badge { display: flex; align-items: center; gap: 0.3rem; font-family: var(--mono); font-size: 0.55rem; color: var(--cyan); padding: 0.2rem 0.5rem; border: 1px solid rgba(6,182,212,0.12); border-radius: 6px; background: rgba(6,182,212,0.04); }
-  .tau-label { color: var(--t3); font-size: 0.45rem; text-transform: uppercase; letter-spacing: 0.08em; }
-  .topbar-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--glass-border); background: transparent; color: var(--t2); cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  /* ── Cockpit Live Metrics (center) ── */
+  .cs-center { display: none; align-items: center; gap: 0.6rem; }
+  .cs-metric { display: flex; align-items: center; gap: 0.3rem; }
+  .cs-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.4); animation: pulse-dot 2s ease infinite; }
+  .cs-metric-val { font-size: 0.65rem; font-family: var(--mono); color: var(--t1); font-weight: 600; }
+  .cs-metric-label { font-size: 0.5rem; font-family: var(--mono); color: var(--t3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .cs-divider { width: 1px; height: 14px; background: var(--glass-border); }
+
+  /* ── Cockpit Right (user area) ── */
+  .cs-right { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+  .topbar-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--glass-border); background: transparent; color: var(--t2); cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
   .topbar-btn:hover { background: var(--glass-hover); color: var(--cyan); border-color: rgba(6,182,212,0.2); }
-
-  .avatar-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--glass-border); background: transparent; cursor: pointer; padding: 0; overflow: hidden; transition: border-color 0.2s; }
+  .avatar-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--glass-border); background: transparent; cursor: pointer; padding: 0; overflow: hidden; transition: border-color 0.2s; flex-shrink: 0; }
   .avatar-btn:hover { border-color: var(--cyan); }
-  .avatar-circle { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #fff; }
+  .avatar-circle { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: 700; color: #fff; }
+  .cs-user-info { display: none; flex-direction: column; align-items: flex-end; }
+  .cs-user-name { font-size: 0.62rem; color: var(--t2); font-weight: 500; }
+  .cs-user-role { font-size: 0.45rem; font-family: var(--mono); color: var(--cyan); opacity: 0.6; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── Cockpit Search (inside status bar) ── */
+  .cs-search { flex: 1; max-width: 360px; margin: 0 0.5rem; background: var(--card); border: 1px solid var(--glass-border); border-radius: 10px; padding: 0 0.6rem; display: flex; align-items: center; gap: 0.4rem; height: 30px; transition: all 0.2s; }
+  .cs-search:focus-within { border-color: rgba(6,182,212,0.25); box-shadow: 0 0 0 2px rgba(6,182,212,0.06); }
+  .cs-search-input { flex: 1; background: transparent; border: none; color: var(--t1); font-family: var(--sans); font-size: 0.72rem; outline: none; height: 100%; min-width: 0; }
+  .cs-search-input::placeholder { color: var(--t3); }
+  .search-shortcut { font-size: 0.5rem; font-family: var(--mono); padding: 0.1rem 0.3rem; border-radius: 3px; background: var(--t4); color: var(--t3); flex-shrink: 0; display: none; }
+
+  /* ── Cockpit Dock (floating pill, mobile-first) ── */
+  .cockpit-dock { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; padding: 0 0.5rem 0.4rem; padding-bottom: max(0.4rem, env(safe-area-inset-bottom)); }
+  .dock-pill { display: flex; align-items: center; justify-content: space-around; gap: 0.15rem; max-width: 420px; margin: 0 auto; padding: 0.35rem 0.5rem; border-radius: 18px; background: rgba(6,8,18,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 -4px 24px rgba(0,0,0,0.4); }
+  body.light .dock-pill { background: rgba(255,255,255,0.92); border-color: rgba(0,0,0,0.08); box-shadow: 0 -4px 24px rgba(0,0,0,0.08); }
+  .dock-item { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; padding: 0.3rem 0.6rem; border-radius: 12px; border: none; background: transparent; color: var(--t3); cursor: pointer; transition: all 0.2s var(--ease); position: relative; min-width: 44px; }
+  .dock-item:hover { color: var(--t1); background: var(--glass-hover); }
+  .dock-item.active { color: var(--cyan); background: rgba(6,182,212,0.08); }
+  .dock-item.active::after { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 2px; border-radius: 1px; background: linear-gradient(90deg, var(--cyan), var(--purple)); box-shadow: 0 0 6px rgba(6,182,212,0.4); }
+  .dock-icon { font-size: 1.15rem; line-height: 1; }
+  .dock-label { font-size: 0.45rem; font-family: var(--mono); letter-spacing: 0.03em; text-transform: uppercase; }
+
+  /* ── Desktop enhancements ── */
+  @media (min-width: 640px) {
+    .cockpit-status { padding: 0 1rem; }
+    .cs-center { display: flex; }
+    .cs-search { max-width: 420px; }
+    .search-shortcut { display: block; }
+    .cs-user-info { display: flex; }
+    .brand-logo { width: 28px; height: 28px; }
+    .dock-pill { max-width: 480px; gap: 0.2rem; }
+    .dock-item { padding: 0.35rem 0.8rem; }
+  }
+
+  /* ── Profile Menu (unchanged) ── */
+  .profile-area { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+  .tau-badge { display: none; align-items: center; gap: 0.3rem; font-family: var(--mono); font-size: 0.55rem; color: var(--cyan); padding: 0.2rem 0.5rem; border: 1px solid rgba(6,182,212,0.12); border-radius: 6px; background: rgba(6,182,212,0.04); }
+  @media (min-width: 640px) { .tau-badge { display: flex; } }
 
   /* ── Profile Menu ── */
   .profile-menu { position: absolute; top: calc(var(--topbar-h) - 4px); right: 1rem; width: 280px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 12px; box-shadow: var(--glass-shadow); z-index: 100; display: none; overflow: hidden; }
@@ -239,19 +281,9 @@ dom.inject_css(`
 
 dom.inject_css(`
   /* ── Viewport ── */
-  .viewport { flex: 1; overflow-y: auto; background: var(--void); transition: background 0.4s var(--ease); }
+  .viewport { flex: 1; overflow-y: auto; background: var(--void); transition: background 0.4s var(--ease); padding-bottom: 80px; }
   .page { max-width: 900px; margin: 0 auto; padding: 1.5rem; animation: page-in 0.35s var(--ease-out); }
   @keyframes page-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* ── Dock ── */
-  .dock { height: var(--dock-h); background: var(--glass-bg); backdrop-filter: blur(24px) saturate(1.4); border-top: 1px solid var(--glass-border); flex-shrink: 0; z-index: 50; padding-bottom: env(safe-area-inset-bottom, 0); }
-  .dock-inner { display: flex; align-items: center; justify-content: center; height: var(--dock-h); gap: 0.25rem; padding: 0 1rem; }
-  .dock-item { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; padding: 0.4rem 1.2rem; border-radius: 12px; border: none; background: transparent; color: var(--t3); cursor: pointer; transition: all 0.2s var(--ease); position: relative; min-width: 64px; }
-  .dock-item:hover { color: var(--t1); background: var(--glass-hover); }
-  .dock-item.active { color: var(--cyan); }
-  .dock-item.active::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; border-radius: 2px; background: var(--cyan); box-shadow: 0 0 8px rgba(6,182,212,0.4); }
-  .dock-icon { font-size: 1.25rem; line-height: 1; }
-  .dock-label { font-size: 0.5rem; font-family: var(--mono); letter-spacing: 0.03em; text-transform: uppercase; }
 
   /* ── Auth Overlay ── */
   .auth-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(2,2,8,0.92); backdrop-filter: blur(20px); display: none; align-items: center; justify-content: center; padding: 2rem; }
@@ -494,12 +526,8 @@ dom.inject_css(`
 
   /* ── Responsive ── */
   @media (max-width: 768px) {
-    .search-trigger { display: none; }
-    .tau-badge { display: none; }
     .chat-layout { flex-direction: column; }
     .chat-sidebar { width: 100%; height: auto; max-height: 180px; border-right: none; border-bottom: 1px solid var(--glass-border); }
-    .dock-item { padding: 0.4rem 0.6rem; min-width: 48px; }
-    .dock-label { font-size: 0.45rem; }
     .page { padding: 1rem; }
     .home-greeting { font-size: 1.2rem; }
     .home-hero { padding: 2rem 0 1.5rem; }
@@ -511,8 +539,6 @@ dom.inject_css(`
     .metric-grid { grid-template-columns: 1fr 1fr; }
     .domain-grid { grid-template-columns: 1fr; }
     .agent-grid { grid-template-columns: 1fr; }
-    .dock-inner { gap: 0; }
-    .dock-item { padding: 0.35rem 0.5rem; }
     .boot-console { width: 95%; }
     .boot-body { min-height: 240px; font-size: 0.65rem; }
   }
@@ -844,21 +870,32 @@ function doLogout() {
 function buildShell() {
   const root = dom.create('div', { id: 'cortex-root' })
 
-  // ── Topbar ──
-  const topbar = dom.create('header', { className: 'topbar' })
+  // ── Cockpit Status Bar ──
+  const statusBar = dom.create('header', { className: 'cockpit-status' })
 
-  const brandArea = dom.create('div', { className: 'topbar-brand' })
-  const logo = dom.create('div', { className: 'brand-logo', html: '⬡' })
-  const brandName = dom.create('span', { className: 'brand-name', text: 'CORTEX' })
-  brandArea.appendChild(logo)
-  brandArea.appendChild(brandName)
-  topbar.appendChild(brandArea)
+  // Left: brand + time
+  const csLeft = dom.create('div', { className: 'cs-left' })
+  const csBrand = dom.create('div', { className: 'cs-brand' })
+  csBrand.appendChild(dom.create('div', { className: 'brand-logo', html: '⬡' }))
+  csBrand.appendChild(dom.create('span', { className: 'brand-name', text: 'CORTEX' }))
+  csLeft.appendChild(csBrand)
+  const csTime = dom.create('div', { className: 'cs-time', id: 'cs-time' })
+  csLeft.appendChild(csTime)
+  statusBar.appendChild(csLeft)
 
-  // Global search bar
-  const searchWrap = dom.create('div', { className: 'search-trigger', id: 'search-trigger' })
+  // Center: live metrics (hidden on mobile via CSS)
+  const csCenter = dom.create('div', { className: 'cs-center' })
+  csCenter.innerHTML = '<div class="cs-metric"><div class="cs-dot"></div><span class="cs-metric-val" id="cs-organisms">4</span><span class="cs-metric-label">Organisms</span></div><div class="cs-divider"></div><div class="cs-metric"><span class="cs-metric-val" id="cs-domains">149</span><span class="cs-metric-label">Domains</span></div><div class="cs-divider"></div><div class="cs-metric"><span class="cs-metric-val" id="cs-tau">τ 0</span></div>'
+  statusBar.appendChild(csCenter)
+
+  // Right: search + theme + user
+  const csRight = dom.create('div', { className: 'cs-right' })
+
+  // Inline search
+  const csSearch = dom.create('div', { className: 'cs-search' })
   const searchInput = dom.create('input', {
-    className: 'topbar-search-input', id: 'topbar-search',
-    attrs: { type: 'text', placeholder: 'Search the web, enter URL, or @axiom...', autocomplete: 'off' },
+    className: 'cs-search-input', id: 'topbar-search',
+    attrs: { type: 'text', placeholder: 'Search / URL / @axiom', autocomplete: 'off' },
     onKeydown: (e) => {
       if (e.key === 'Enter') {
         const val = e.target.value.trim()
@@ -874,19 +911,11 @@ function buildShell() {
       }
     }
   })
-  const searchShortcut = dom.create('span', { className: 'search-shortcut', text: '⌘K' })
-  searchWrap.appendChild(searchInput)
-  searchWrap.appendChild(searchShortcut)
-  topbar.appendChild(searchWrap)
+  csSearch.appendChild(searchInput)
+  csSearch.appendChild(dom.create('span', { className: 'search-shortcut', text: '⌘K' }))
+  csRight.appendChild(csSearch)
 
-  // Profile area
-  const profileArea = dom.create('div', { className: 'profile-area' })
-  const tauBadge = dom.create('div', { className: 'tau-badge', id: 'topbar-tau' })
-  tauBadge.appendChild(dom.create('span', { className: 'tau-label', text: 'τ' }))
-  tauBadge.appendChild(dom.create('span', { id: 'tau-value', text: '0000000' }))
-  profileArea.appendChild(tauBadge)
-
-  // Theme toggle in topbar
+  // Theme toggle
   const themeBtn = dom.create('button', {
     className: 'topbar-btn', id: 'theme-btn',
     html: theme.get() === 'dark' ? '☀' : '☾',
@@ -896,35 +925,49 @@ function buildShell() {
       if (btn) btn.innerHTML = theme.get() === 'dark' ? '☀' : '☾'
     }
   })
-  profileArea.appendChild(themeBtn)
+  csRight.appendChild(themeBtn)
+
+  // User info (desktop only via CSS)
+  const csUserInfo = dom.create('div', { className: 'cs-user-info', id: 'cs-user-info' })
+  csUserInfo.appendChild(dom.create('span', { className: 'cs-user-name', id: 'cs-user-name', text: 'Operator' }))
+  csUserInfo.appendChild(dom.create('span', { className: 'cs-user-role', text: 'Cortex OS' }))
+  csRight.appendChild(csUserInfo)
 
   // Avatar button
   const avatarBtn = dom.create('button', { className: 'avatar-btn', id: 'avatar-btn', onClick: toggleProfileMenu })
   const avatarInner = dom.create('div', { className: 'avatar-circle', id: 'avatar-circle', text: '?' })
   avatarBtn.appendChild(avatarInner)
-  profileArea.appendChild(avatarBtn)
-  topbar.appendChild(profileArea)
+  csRight.appendChild(avatarBtn)
+  statusBar.appendChild(csRight)
 
-  // Profile dropdown
+  // Profile dropdown (attached to status bar)
   const profileMenu = dom.create('div', { className: 'profile-menu', id: 'profile-menu' })
   profileMenu.innerHTML = '<div class="pm-header"><div class="pm-avatar" id="pm-avatar">?</div><div class="pm-info"><div class="pm-name" id="pm-name">—</div><div class="pm-email" id="pm-email">—</div><div class="pm-tier" id="pm-tier">FREE</div></div></div><div class="pm-divider"></div><button class="pm-item" id="pm-upload"><span>📷</span> Change Photo</button><button class="pm-item" onclick="navigateTo(\'settings\')"><span>⚙</span> Settings</button><div class="pm-divider"></div><button class="pm-item pm-danger" onclick="doLogout()"><span>↩</span> Sign Out</button>'
-  topbar.appendChild(profileMenu)
+  statusBar.appendChild(profileMenu)
 
-  root.appendChild(topbar)
+  root.appendChild(statusBar)
 
-  // ── Tau binding ──
+  // ── Tau binding to cockpit ──
   globalTau.on_change((v) => {
-    const el = dom.select('#tau-value')
-    if (el) el.textContent = text.pad_start(String(v), 7, '0')
+    const el = dom.select('#cs-tau')
+    if (el) el.textContent = 'τ ' + text.pad_start(String(v), 5, '0')
   })
+
+  // ── Cockpit time updater ──
+  function updateCockpitTime() {
+    const el = dom.select('#cs-time')
+    if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  }
+  updateCockpitTime()
+  setInterval(updateCockpitTime, 30000)
 
   // ── Main Viewport ──
   const viewport = dom.create('main', { className: 'viewport', id: 'main-viewport' })
   root.appendChild(viewport)
 
-  // ── Dock ──
-  const dock = dom.create('nav', { className: 'dock' })
-  const dockInner = dom.create('div', { className: 'dock-inner' })
+  // ── Cockpit Dock (floating pill) ──
+  const dock = dom.create('nav', { className: 'cockpit-dock' })
+  const dockPill = dom.create('div', { className: 'dock-pill' })
 
   for (const [key, route] of Object.entries(ROUTES)) {
     if (!route.dock) continue
@@ -937,11 +980,11 @@ function buildShell() {
     const label = dom.create('span', { className: 'dock-label', text: route.label })
     item.appendChild(icon)
     item.appendChild(label)
-    dockInner.appendChild(item)
+    dockPill.appendChild(item)
   }
-  dock.appendChild(dockInner)
+  dock.appendChild(dockPill)
 
-  // Legal footer inside dock
+  // Legal footer
   const legalFooter = dom.create('div', { className: 'legal-footer' })
   legalFooter.innerHTML = '© 2026 DarkWave Studios LLC <span class="legal-separator">·</span> <a href="#terms" onclick="event.preventDefault();navigateTo(\'terms\')">Terms</a> <span class="legal-separator">·</span> <a href="#privacy" onclick="event.preventDefault();navigateTo(\'privacy\')">Privacy</a> <span class="legal-separator">·</span> <a href="https://axiom42.com" target="_blank">API</a> <span class="legal-separator">·</span> <span class="legal-shield" onclick="handleShieldClick()">🛡 TrustShield</span> <span class="legal-separator">·</span> Patent Pending'
   root.appendChild(legalFooter)
@@ -1200,6 +1243,7 @@ function updateProfileUI() {
   dom.set_text('#pm-name', name)
   dom.set_text('#pm-email', email)
   dom.set_text('#pm-tier', tier)
+  dom.set_text('#cs-user-name', name)
 
   if (avatar) {
     updateAvatarUI(avatar)

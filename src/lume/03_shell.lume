@@ -4,21 +4,32 @@
 function buildShell() {
   define root = dom.create('div', { id: 'cortex-root' })
 
-  /// ── Topbar ──
-  define topbar = dom.create('header', { className: 'topbar' })
+  /// ── Cockpit Status Bar ──
+  define statusBar = dom.create('header', { className: 'cockpit-status' })
 
-  define brandArea = dom.create('div', { className: 'topbar-brand' })
-  define logo = dom.create('div', { className: 'brand-logo', html: '⬡' })
-  define brandName = dom.create('span', { className: 'brand-name', text: 'CORTEX' })
-  brandArea.appendChild(logo)
-  brandArea.appendChild(brandName)
-  topbar.appendChild(brandArea)
+  /// Left: brand + time
+  define csLeft = dom.create('div', { className: 'cs-left' })
+  define csBrand = dom.create('div', { className: 'cs-brand' })
+  csBrand.appendChild(dom.create('div', { className: 'brand-logo', html: '⬡' }))
+  csBrand.appendChild(dom.create('span', { className: 'brand-name', text: 'CORTEX' }))
+  csLeft.appendChild(csBrand)
+  define csTime = dom.create('div', { className: 'cs-time', id: 'cs-time' })
+  csLeft.appendChild(csTime)
+  statusBar.appendChild(csLeft)
 
-  /// Global search bar
-  define searchWrap = dom.create('div', { className: 'search-trigger', id: 'search-trigger' })
+  /// Center: live metrics (hidden on mobile via CSS)
+  define csCenter = dom.create('div', { className: 'cs-center' })
+  csCenter.innerHTML = '<div class="cs-metric"><div class="cs-dot"></div><span class="cs-metric-val" id="cs-organisms">4</span><span class="cs-metric-label">Organisms</span></div><div class="cs-divider"></div><div class="cs-metric"><span class="cs-metric-val" id="cs-domains">149</span><span class="cs-metric-label">Domains</span></div><div class="cs-divider"></div><div class="cs-metric"><span class="cs-metric-val" id="cs-tau">τ 0</span></div>'
+  statusBar.appendChild(csCenter)
+
+  /// Right: search + theme + user
+  define csRight = dom.create('div', { className: 'cs-right' })
+
+  /// Inline search
+  define csSearch = dom.create('div', { className: 'cs-search' })
   define searchInput = dom.create('input', {
-    className: 'topbar-search-input', id: 'topbar-search',
-    attrs: { type: 'text', placeholder: 'Search the web, enter URL, or @axiom...', autocomplete: 'off' },
+    className: 'cs-search-input', id: 'topbar-search',
+    attrs: { type: 'text', placeholder: 'Search / URL / @axiom', autocomplete: 'off' },
     onKeydown: (e) => {
       if (e.key === 'Enter') {
         define val = e.target.value.trim()
@@ -34,19 +45,11 @@ function buildShell() {
       }
     }
   })
-  define searchShortcut = dom.create('span', { className: 'search-shortcut', text: '⌘K' })
-  searchWrap.appendChild(searchInput)
-  searchWrap.appendChild(searchShortcut)
-  topbar.appendChild(searchWrap)
+  csSearch.appendChild(searchInput)
+  csSearch.appendChild(dom.create('span', { className: 'search-shortcut', text: '⌘K' }))
+  csRight.appendChild(csSearch)
 
-  /// Profile area
-  define profileArea = dom.create('div', { className: 'profile-area' })
-  define tauBadge = dom.create('div', { className: 'tau-badge', id: 'topbar-tau' })
-  tauBadge.appendChild(dom.create('span', { className: 'tau-label', text: 'τ' }))
-  tauBadge.appendChild(dom.create('span', { id: 'tau-value', text: '0000000' }))
-  profileArea.appendChild(tauBadge)
-
-  /// Theme toggle in topbar
+  /// Theme toggle
   define themeBtn = dom.create('button', {
     className: 'topbar-btn', id: 'theme-btn',
     html: theme.get() === 'dark' ? '☀' : '☾',
@@ -56,35 +59,49 @@ function buildShell() {
       if (btn) btn.innerHTML = theme.get() === 'dark' ? '☀' : '☾'
     }
   })
-  profileArea.appendChild(themeBtn)
+  csRight.appendChild(themeBtn)
+
+  /// User info (desktop only via CSS)
+  define csUserInfo = dom.create('div', { className: 'cs-user-info', id: 'cs-user-info' })
+  csUserInfo.appendChild(dom.create('span', { className: 'cs-user-name', id: 'cs-user-name', text: 'Operator' }))
+  csUserInfo.appendChild(dom.create('span', { className: 'cs-user-role', text: 'Cortex OS' }))
+  csRight.appendChild(csUserInfo)
 
   /// Avatar button
   define avatarBtn = dom.create('button', { className: 'avatar-btn', id: 'avatar-btn', onClick: toggleProfileMenu })
   define avatarInner = dom.create('div', { className: 'avatar-circle', id: 'avatar-circle', text: '?' })
   avatarBtn.appendChild(avatarInner)
-  profileArea.appendChild(avatarBtn)
-  topbar.appendChild(profileArea)
+  csRight.appendChild(avatarBtn)
+  statusBar.appendChild(csRight)
 
-  /// Profile dropdown
+  /// Profile dropdown (attached to status bar)
   define profileMenu = dom.create('div', { className: 'profile-menu', id: 'profile-menu' })
   profileMenu.innerHTML = '<div class="pm-header"><div class="pm-avatar" id="pm-avatar">?</div><div class="pm-info"><div class="pm-name" id="pm-name">—</div><div class="pm-email" id="pm-email">—</div><div class="pm-tier" id="pm-tier">FREE</div></div></div><div class="pm-divider"></div><button class="pm-item" id="pm-upload"><span>📷</span> Change Photo</button><button class="pm-item" onclick="navigateTo(\'settings\')"><span>⚙</span> Settings</button><div class="pm-divider"></div><button class="pm-item pm-danger" onclick="doLogout()"><span>↩</span> Sign Out</button>'
-  topbar.appendChild(profileMenu)
+  statusBar.appendChild(profileMenu)
 
-  root.appendChild(topbar)
+  root.appendChild(statusBar)
 
-  /// ── Tau binding ──
+  /// ── Tau binding to cockpit ──
   globalTau.on_change((v) => {
-    define el = dom.select('#tau-value')
-    if (el) el.textContent = text.pad_start(String(v), 7, '0')
+    define el = dom.select('#cs-tau')
+    if (el) el.textContent = 'τ ' + text.pad_start(String(v), 5, '0')
   })
+
+  /// ── Cockpit time updater ──
+  function updateCockpitTime() {
+    define el = dom.select('#cs-time')
+    if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  }
+  updateCockpitTime()
+  setInterval(updateCockpitTime, 30000)
 
   /// ── Main Viewport ──
   define viewport = dom.create('main', { className: 'viewport', id: 'main-viewport' })
   root.appendChild(viewport)
 
-  /// ── Dock ──
-  define dock = dom.create('nav', { className: 'dock' })
-  define dockInner = dom.create('div', { className: 'dock-inner' })
+  /// ── Cockpit Dock (floating pill) ──
+  define dock = dom.create('nav', { className: 'cockpit-dock' })
+  define dockPill = dom.create('div', { className: 'dock-pill' })
 
   for (const [key, route] of Object.entries(ROUTES)) {
     if (!route.dock) continue
@@ -97,11 +114,11 @@ function buildShell() {
     define label = dom.create('span', { className: 'dock-label', text: route.label })
     item.appendChild(icon)
     item.appendChild(label)
-    dockInner.appendChild(item)
+    dockPill.appendChild(item)
   }
-  dock.appendChild(dockInner)
+  dock.appendChild(dockPill)
 
-  /// Legal footer inside dock
+  /// Legal footer
   define legalFooter = dom.create('div', { className: 'legal-footer' })
   legalFooter.innerHTML = '© 2026 DarkWave Studios LLC <span class="legal-separator">·</span> <a href="#terms" onclick="event.preventDefault();navigateTo(\'terms\')">Terms</a> <span class="legal-separator">·</span> <a href="#privacy" onclick="event.preventDefault();navigateTo(\'privacy\')">Privacy</a> <span class="legal-separator">·</span> <a href="https://axiom42.com" target="_blank">API</a> <span class="legal-separator">·</span> <span class="legal-shield" onclick="handleShieldClick()">🛡 TrustShield</span> <span class="legal-separator">·</span> Patent Pending'
   root.appendChild(legalFooter)
@@ -360,6 +377,7 @@ function updateProfileUI() {
   dom.set_text('#pm-name', name)
   dom.set_text('#pm-email', email)
   dom.set_text('#pm-tier', tier)
+  dom.set_text('#cs-user-name', name)
 
   if (avatar) {
     updateAvatarUI(avatar)

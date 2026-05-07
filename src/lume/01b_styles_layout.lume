@@ -2,19 +2,9 @@
 
 dom.inject_css("
   /* ── Viewport ── */
-  .viewport { flex: 1; overflow-y: auto; background: var(--void); transition: background 0.4s var(--ease); }
+  .viewport { flex: 1; overflow-y: auto; background: var(--void); transition: background 0.4s var(--ease); padding-bottom: 80px; }
   .page { max-width: 900px; margin: 0 auto; padding: 1.5rem; animation: page-in 0.35s var(--ease-out); }
   @keyframes page-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* ── Dock ── */
-  .dock { height: var(--dock-h); background: var(--glass-bg); backdrop-filter: blur(24px) saturate(1.4); border-top: 1px solid var(--glass-border); flex-shrink: 0; z-index: 50; padding-bottom: env(safe-area-inset-bottom, 0); }
-  .dock-inner { display: flex; align-items: center; justify-content: center; height: var(--dock-h); gap: 0.25rem; padding: 0 1rem; }
-  .dock-item { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; padding: 0.4rem 1.2rem; border-radius: 12px; border: none; background: transparent; color: var(--t3); cursor: pointer; transition: all 0.2s var(--ease); position: relative; min-width: 64px; }
-  .dock-item:hover { color: var(--t1); background: var(--glass-hover); }
-  .dock-item.active { color: var(--cyan); }
-  .dock-item.active::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; border-radius: 2px; background: var(--cyan); box-shadow: 0 0 8px rgba(6,182,212,0.4); }
-  .dock-icon { font-size: 1.25rem; line-height: 1; }
-  .dock-label { font-size: 0.5rem; font-family: var(--mono); letter-spacing: 0.03em; text-transform: uppercase; }
 
   /* ── Auth Overlay ── */
   .auth-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(2,2,8,0.92); backdrop-filter: blur(20px); display: none; align-items: center; justify-content: center; padding: 2rem; }
