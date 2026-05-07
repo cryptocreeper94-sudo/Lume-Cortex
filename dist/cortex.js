@@ -946,9 +946,9 @@ async function handleSignup() {
   if (!email || !pass) { dom.set_text('#auth-error', 'Email and password required.'); return }
   if (pass.length < 8) { dom.set_text('#auth-error', 'Password must be at least 8 characters.'); return }
   try {
-    const res = await fetch(API_BASE + '/v1/auth/register', {
+    const res = await fetch(API_BASE + '/v1/auth/signup', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: pass, display_name: name })
+      body: JSON.stringify({ email, password: pass, name: name })
     })
     const data = await res.json()
     if (!res.ok) { dom.set_text('#auth-error', data.error || 'Signup failed.'); return }
@@ -1009,7 +1009,7 @@ async function handleGoogleLogin() {
     provider.addScope('profile')
     const result = await firebaseAuthInstance.signInWithPopup(provider)
     const idToken = await result.user.getIdToken()
-    const res = await fetch(API_BASE + '/api/auth/firebase', {
+    const res = await fetch(API_BASE + '/v1/auth/firebase', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken })
     })
@@ -1035,7 +1035,7 @@ async function handleGitHubLogin() {
     const provider = new firebase.auth.GithubAuthProvider()
     const result = await firebaseAuthInstance.signInWithPopup(provider)
     const idToken = await result.user.getIdToken()
-    const res = await fetch(API_BASE + '/api/auth/firebase', {
+    const res = await fetch(API_BASE + '/v1/auth/firebase', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken })
     })
