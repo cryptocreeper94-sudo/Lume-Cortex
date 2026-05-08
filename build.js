@@ -51,7 +51,7 @@ function transformLume(src) {
                 continue
             }
 
-            line = line.replace(/^(\s*)define\s+/, '$1const ')
+            line = line.replace(/^(\s*)define\s+/, '$1let ')
             line = line.replace(/^(\s*)show\s+(.+)$/, '$1console.log($2)')
 
             const forEachMatch = line.match(/^(\s*)for\s+each\s+(\w+)\s+in\s+(.+)$/)
@@ -66,7 +66,7 @@ function transformLume(src) {
                     const nextIndent = nextLine.match(/^(\s*)/)[1].length
                     if (nextIndent <= baseIndent) break
                     let transformed = nextLine
-                    transformed = transformed.replace(/^(\s*)define\s+/, '$1const ')
+                    transformed = transformed.replace(/^(\s*)define\s+/, '$1let ')
                     transformed = transformed.replace(/^(\s*)show\s+(.+)$/, '$1console.log($2)')
                     output.push(transformed)
                     j++
@@ -88,7 +88,7 @@ function transformLume(src) {
                     const nextIndent = nextLine.match(/^(\s*)/)[1].length
                     if (nextIndent <= baseIndent) break
                     let transformed = nextLine
-                    transformed = transformed.replace(/^(\s*)define\s+/, '$1const ')
+                    transformed = transformed.replace(/^(\s*)define\s+/, '$1let ')
                     output.push(transformed)
                     j++
                 }
@@ -114,7 +114,7 @@ function transformLume(src) {
                         const bodyIndent = bodyLine.match(/^(\s*)/)[1].length
                         if (bodyIndent <= baseIndent) break
                         let transformed = bodyLine
-                        transformed = transformed.replace(/^(\s*)define\s+/, '$1const ')
+                        transformed = transformed.replace(/^(\s*)define\s+/, '$1let ')
                         transformed = transformed.replace(/^(\s*)show\s+(.+)$/, '$1console.log($2)')
                         output.push(transformed)
                         j++

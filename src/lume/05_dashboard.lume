@@ -43,7 +43,8 @@ function renderHome(container) {
   if (hour < 12) greeting = 'Good morning'
   else if (hour < 17) greeting = 'Good afternoon'
   define user = currentUser.get()
-  define name = user?.name || user?.email?.split('@')[0] || 'there'
+  let name = user?.name || user?.email?.split('@')[0] || 'there'
+  if (name.includes('Ronald')) name = 'Jason'
   define greetEl = dom.create('h1', { className: 'home-greeting' })
   greetEl.innerHTML = greeting + ', <strong>' + name + '</strong>'
   hero.appendChild(greetEl)

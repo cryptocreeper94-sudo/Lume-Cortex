@@ -763,7 +763,7 @@ dom.inject_css(`
 
 // ─── ROUTER & STATE ─────────────────────────────────────────
 
-const ROUTES = {
+let ROUTES = {
   boot:    { title: 'Boot Console',  icon: '⚡', dock: false },
   home:    { title: 'Home',          icon: '🏠', dock: true, label: 'Home' },
   chat:    { title: 'Conversations', icon: '💬', dock: true, label: 'Chat' },
@@ -776,24 +776,24 @@ const ROUTES = {
 }
 
 // ── App State ──
-const currentPage = state.reactive('boot')
-const globalTau = state.reactive(0)
-const booted = state.reactive(false)
-const theme = state.reactive(window.localStorage.getItem('cortex-theme') || 'dark')
-const adminMode = state.reactive(window.sessionStorage.getItem('cortex-admin') === 'true')
+let currentPage = state.reactive('boot')
+let globalTau = state.reactive(0)
+let booted = state.reactive(false)
+let theme = state.reactive(window.localStorage.getItem('cortex-theme') || 'dark')
+let adminMode = state.reactive(window.sessionStorage.getItem('cortex-admin') === 'true')
 
 // ── Auth State ──
-const authToken = state.reactive(window.localStorage.getItem('axiom_token') || null)
-const currentUser = state.reactive(JSON.parse(window.localStorage.getItem('axiom_tenant') || 'null'))
-const userProfile = state.reactive(null)
+let authToken = state.reactive(window.localStorage.getItem('axiom_token') || null)
+let currentUser = state.reactive(JSON.parse(window.localStorage.getItem('axiom_tenant') || 'null'))
+let userProfile = state.reactive(null)
 
 // ── Conversation State ──
-const conversations = state.reactive([])
-const activeConversation = state.reactive(null)
-const activeAgent = state.reactive({ name: 'Axiom', icon: '⚛', personality: 'conversational' })
+let conversations = state.reactive([])
+let activeConversation = state.reactive(null)
+let activeAgent = state.reactive({ name: 'Axiom', icon: '⚛', personality: 'conversational' })
 
 // ── API Config ──
-const API_BASE = 'https://axiom42.com'
+let API_BASE = 'https://axiom42.com'
 
 // Apply saved theme
 if (theme.get() === 'light')
@@ -801,8 +801,8 @@ if (theme.get() === 'light')
 
 // Theme toggler
 function toggleTheme() {
-  const current = theme.get()
-  const next = current === 'dark' ? 'light' : 'dark'
+  let current = theme.get()
+  let next = current === 'dark' ? 'light' : 'dark'
   theme.set(next)
   window.localStorage.setItem('cortex-theme', next)
   if (next === 'light') {
@@ -813,7 +813,7 @@ function toggleTheme() {
 }
 
 // Tau ticker — global timebase
-const tauTicker = time.ticker(() => {
+let tauTicker = time.ticker(() => {
   globalTau.update(v => v + 1)
 }, 100)
 
@@ -827,7 +827,7 @@ function navigateTo(page) {
 
 // Hash change listener
 window.addEventListener('hashchange', () => {
-  const hash = window.location.hash.slice(1) || 'home'
+  let hash = window.location.hash.slice(1) || 'home'
   if (ROUTES[hash]) {
     currentPage.set(hash)
     renderPage()
@@ -836,17 +836,17 @@ window.addEventListener('hashchange', () => {
 
 // ── Auth Helpers ──
 function getAuthHeaders() {
-  const token = authToken.get()
+  let token = authToken.get()
   return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
 }
 
 async function fetchUserProfile() {
-  const token = authToken.get()
+  let token = authToken.get()
   if (!token) return
   try {
-    const res = await fetch(API_BASE + '/v1/me', { headers: getAuthHeaders() })
+    let res = await fetch(API_BASE + '/v1/me', { headers: getAuthHeaders() })
     if (res.ok) {
-      const data = await res.json()
+      let data = await res.json()
       userProfile.set(data)
     }
   } catch (e) {
@@ -868,37 +868,37 @@ function doLogout() {
 // Dock-based layout with topbar, profile menu, and auth overlay
 
 function buildShell() {
-  const root = dom.create('div', { id: 'cortex-root' })
+  let root = dom.create('div', { id: 'cortex-root' })
 
   // ── Cockpit Status Bar ──
-  const statusBar = dom.create('header', { className: 'cockpit-status' })
+  let statusBar = dom.create('header', { className: 'cockpit-status' })
 
   // Left: brand + time
-  const csLeft = dom.create('div', { className: 'cs-left' })
-  const csBrand = dom.create('div', { className: 'cs-brand' })
+  let csLeft = dom.create('div', { className: 'cs-left' })
+  let csBrand = dom.create('div', { className: 'cs-brand' })
   csBrand.appendChild(dom.create('div', { className: 'brand-logo', html: '⬡' }))
   csBrand.appendChild(dom.create('span', { className: 'brand-name', text: 'CORTEX' }))
   csLeft.appendChild(csBrand)
-  const csTime = dom.create('div', { className: 'cs-time', id: 'cs-time' })
+  let csTime = dom.create('div', { className: 'cs-time', id: 'cs-time' })
   csLeft.appendChild(csTime)
   statusBar.appendChild(csLeft)
 
   // Center: live metrics (hidden on mobile via CSS)
-  const csCenter = dom.create('div', { className: 'cs-center' })
+  let csCenter = dom.create('div', { className: 'cs-center' })
   csCenter.innerHTML = '<div class="cs-metric"><div class="cs-dot"></div><span class="cs-metric-val" id="cs-organisms">4</span><span class="cs-metric-label">Organisms</span></div><div class="cs-divider"></div><div class="cs-metric"><span class="cs-metric-val" id="cs-domains">149</span><span class="cs-metric-label">Domains</span></div><div class="cs-divider"></div><div class="cs-metric"><span class="cs-metric-val" id="cs-tau">τ 0</span></div>'
   statusBar.appendChild(csCenter)
 
   // Right: search + theme + user
-  const csRight = dom.create('div', { className: 'cs-right' })
+  let csRight = dom.create('div', { className: 'cs-right' })
 
   // Inline search
-  const csSearch = dom.create('div', { className: 'cs-search' })
-  const searchInput = dom.create('input', {
+  let csSearch = dom.create('div', { className: 'cs-search' })
+  let searchInput = dom.create('input', {
     className: 'cs-search-input', id: 'topbar-search',
     attrs: { type: 'text', placeholder: 'Search / URL / @axiom', autocomplete: 'off' },
     onKeydown: (e) => {
       if (e.key === 'Enter') {
-        const val = e.target.value.trim()
+        let val = e.target.value.trim()
         if (!val) return
         if (val.match(/^https?:\/\//i) || val.match(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/)) {
           window.open(val.startsWith('http') ? val : 'https://' + val, '_blank')
@@ -916,32 +916,32 @@ function buildShell() {
   csRight.appendChild(csSearch)
 
   // Theme toggle
-  const themeBtn = dom.create('button', {
+  let themeBtn = dom.create('button', {
     className: 'topbar-btn', id: 'theme-btn',
     html: theme.get() === 'dark' ? '☀' : '☾',
     onClick: () => {
       toggleTheme()
-      const btn = dom.select('#theme-btn')
+      let btn = dom.select('#theme-btn')
       if (btn) btn.innerHTML = theme.get() === 'dark' ? '☀' : '☾'
     }
   })
   csRight.appendChild(themeBtn)
 
   // User info (desktop only via CSS)
-  const csUserInfo = dom.create('div', { className: 'cs-user-info', id: 'cs-user-info' })
+  let csUserInfo = dom.create('div', { className: 'cs-user-info', id: 'cs-user-info' })
   csUserInfo.appendChild(dom.create('span', { className: 'cs-user-name', id: 'cs-user-name', text: 'Operator' }))
   csUserInfo.appendChild(dom.create('span', { className: 'cs-user-role', text: 'Cortex OS' }))
   csRight.appendChild(csUserInfo)
 
   // Avatar button
-  const avatarBtn = dom.create('button', { className: 'avatar-btn', id: 'avatar-btn', onClick: toggleProfileMenu })
-  const avatarInner = dom.create('div', { className: 'avatar-circle', id: 'avatar-circle', text: '?' })
+  let avatarBtn = dom.create('button', { className: 'avatar-btn', id: 'avatar-btn', onClick: toggleProfileMenu })
+  let avatarInner = dom.create('div', { className: 'avatar-circle', id: 'avatar-circle', text: '?' })
   avatarBtn.appendChild(avatarInner)
   csRight.appendChild(avatarBtn)
   statusBar.appendChild(csRight)
 
   // Profile dropdown (attached to status bar)
-  const profileMenu = dom.create('div', { className: 'profile-menu', id: 'profile-menu' })
+  let profileMenu = dom.create('div', { className: 'profile-menu', id: 'profile-menu' })
   profileMenu.innerHTML = '<div class="pm-header"><div class="pm-avatar" id="pm-avatar">?</div><div class="pm-info"><div class="pm-name" id="pm-name">—</div><div class="pm-email" id="pm-email">—</div><div class="pm-tier" id="pm-tier">FREE</div></div></div><div class="pm-divider"></div><button class="pm-item" id="pm-upload"><span>📷</span> Change Photo</button><button class="pm-item" onclick="navigateTo(\'settings\')"><span>⚙</span> Settings</button><div class="pm-divider"></div><button class="pm-item pm-danger" onclick="doLogout()"><span>↩</span> Sign Out</button>'
   statusBar.appendChild(profileMenu)
 
@@ -949,35 +949,35 @@ function buildShell() {
 
   // ── Tau binding to cockpit ──
   globalTau.on_change((v) => {
-    const el = dom.select('#cs-tau')
+    let el = dom.select('#cs-tau')
     if (el) el.textContent = 'τ ' + text.pad_start(String(v), 5, '0')
   })
 
   // ── Cockpit time updater ──
   function updateCockpitTime() {
-    const el = dom.select('#cs-time')
+    let el = dom.select('#cs-time')
     if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   }
   updateCockpitTime()
   setInterval(updateCockpitTime, 30000)
 
   // ── Main Viewport ──
-  const viewport = dom.create('main', { className: 'viewport', id: 'main-viewport' })
+  let viewport = dom.create('main', { className: 'viewport', id: 'main-viewport' })
   root.appendChild(viewport)
 
   // ── Cockpit Dock (floating pill) ──
-  const dock = dom.create('nav', { className: 'cockpit-dock' })
-  const dockPill = dom.create('div', { className: 'dock-pill' })
+  let dock = dom.create('nav', { className: 'cockpit-dock' })
+  let dockPill = dom.create('div', { className: 'dock-pill' })
 
   for (const [key, route] of Object.entries(ROUTES)) {
     if (!route.dock) continue
-    const item = dom.create('button', {
+    let item = dom.create('button', {
       className: 'dock-item',
       id: 'dock-' + key,
       onClick: () => navigateTo(key)
     })
-    const icon = dom.create('span', { className: 'dock-icon', text: route.icon })
-    const label = dom.create('span', { className: 'dock-label', text: route.label })
+    let icon = dom.create('span', { className: 'dock-icon', text: route.icon })
+    let label = dom.create('span', { className: 'dock-label', text: route.label })
     item.appendChild(icon)
     item.appendChild(label)
     dockPill.appendChild(item)
@@ -985,13 +985,13 @@ function buildShell() {
   dock.appendChild(dockPill)
 
   // Legal footer
-  const legalFooter = dom.create('div', { className: 'legal-footer' })
+  let legalFooter = dom.create('div', { className: 'legal-footer' })
   legalFooter.innerHTML = '© 2026 DarkWave Studios LLC <span class="legal-separator">·</span> <a href="#terms" onclick="event.preventDefault();navigateTo(\'terms\')">Terms</a> <span class="legal-separator">·</span> <a href="#privacy" onclick="event.preventDefault();navigateTo(\'privacy\')">Privacy</a> <span class="legal-separator">·</span> <a href="https://axiom42.com" target="_blank">API</a> <span class="legal-separator">·</span> <span class="legal-shield" onclick="handleShieldClick()">🛡 TrustShield</span> <span class="legal-separator">·</span> Patent Pending'
   root.appendChild(legalFooter)
   root.appendChild(dock)
 
   // ── Signal Chat Bubble ──
-  const signalBubble = dom.create('button', {
+  let signalBubble = dom.create('button', {
     className: 'signal-bubble', id: 'signal-bubble',
     html: '💬',
     onClick: toggleSignalChat
@@ -999,17 +999,17 @@ function buildShell() {
   root.appendChild(signalBubble)
 
   // Signal Chat Panel
-  const signalPanel = dom.create('div', { className: 'signal-panel', id: 'signal-panel' })
+  let signalPanel = dom.create('div', { className: 'signal-panel', id: 'signal-panel' })
   signalPanel.innerHTML = '<div class="signal-panel-header"><span class="signal-panel-title">💬 Signal Chat</span><button class="signal-panel-close" onclick="toggleSignalChat()">✕</button></div><div class="signal-messages" id="signal-messages"><div class="signal-msg incoming"><div class="sender">SYSTEM</div>Welcome to Signal Chat — the Trust Layer community channel.</div></div><div class="signal-input-bar"><input type="text" id="signal-input" placeholder="Type a message..." autocomplete="off"><button class="signal-send" onclick="sendSignalMsg()">→</button></div>'
   root.appendChild(signalPanel)
 
   // ── Auth Overlay ──
-  const authOverlay = dom.create('div', { className: 'auth-overlay', id: 'auth-overlay' })
+  let authOverlay = dom.create('div', { className: 'auth-overlay', id: 'auth-overlay' })
   authOverlay.innerHTML = '<div class="auth-card"><div class="auth-header"><div class="auth-logo">⬡</div><h1 class="auth-title">CORTEX</h1><p class="auth-sub">Lume-OS · Deterministic Meta-Operating System</p></div><div class="auth-tabs"><button class="auth-tab active" id="atab-login" onclick="switchAuthTab(\'login\')">Sign In</button><button class="auth-tab" id="atab-signup" onclick="switchAuthTab(\'signup\')">Create Account</button></div><div class="auth-error" id="auth-error"></div><div id="auth-form-login"><button style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.65rem;color:var(--t1);font-size:0.72rem;cursor:pointer;font-family:var(--sans);transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.4rem" onmouseover="this.style.borderColor=\'rgba(6,182,212,0.3)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.1)\'" onclick="handleGoogleLogin()"><svg width=16 height=16 viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Continue with Google</button><button style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.65rem;color:var(--t1);font-size:0.72rem;cursor:pointer;font-family:var(--sans);transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.4rem" onmouseover="this.style.borderColor=\'rgba(6,182,212,0.3)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.1)\'" onclick="handleGitHubLogin()"><svg width=16 height=16 viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg> Continue with GitHub</button><div style="display:flex;align-items:center;gap:0.75rem;margin:0.6rem 0;color:var(--t3);font-size:0.6rem;text-transform:uppercase"><span style="flex:1;height:1px;background:var(--glass-border)"></span>or sign in with email<span style="flex:1;height:1px;background:var(--glass-border)"></span></div><div class="auth-field"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email"></div><div class="auth-field"><label>Password</label><input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password"></div><button class="auth-submit" id="auth-submit" onclick="handleAuth()">Sign In</button><div style="display:flex;align-items:center;gap:0.75rem;margin:1rem 0;color:var(--t3);font-size:0.6rem;text-transform:uppercase"><span style="flex:1;height:1px;background:var(--glass-border)"></span>or<span style="flex:1;height:1px;background:var(--glass-border)"></span></div><button style="width:100%;background:var(--card);border:1px solid var(--glass-border);border-radius:8px;padding:0.6rem;color:var(--t2);font-size:0.72rem;cursor:pointer;font-family:var(--sans);transition:all 0.15s" onmouseover="this.style.borderColor=\'rgba(6,182,212,0.2)\';this.style.color=\'var(--t1)\'" onmouseout="this.style.borderColor=\'var(--glass-border)\';this.style.color=\'var(--t2)\'" onclick="window.location.href=\'https://dwtl.io/login?redirect=cortex&callback=\'+encodeURIComponent(window.location.origin)">🔐 Sign in with Trust Layer SSO</button></div><div id="auth-form-signup" style="display:none"><div class="auth-field"><label>Email</label><input type="email" id="auth-email2" placeholder="you@example.com" autocomplete="email"></div><div class="auth-field"><label>Password</label><input type="password" id="auth-pass2" placeholder="Min 8 characters" autocomplete="new-password"></div><div class="auth-field"><label>Display Name <span style="font-size:0.55rem;color:var(--t3)">(optional)</span></label><input type="text" id="auth-name" placeholder="How you want to appear" autocomplete="name"></div><button class="auth-submit" onclick="handleSignup()">Create Account</button></div><div class="auth-footer-text">© 2026 DarkWave Studios LLC · Patent Pending</div></div>'
   root.appendChild(authOverlay)
 
   // Hidden file input for avatar upload
-  const fileInput = dom.create('input', { id: 'avatar-file-input', attrs: { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif', style: 'display:none' } })
+  let fileInput = dom.create('input', { id: 'avatar-file-input', attrs: { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif', style: 'display:none' } })
   root.appendChild(fileInput)
 
   dom.mount(root)
@@ -1028,8 +1028,8 @@ function buildShell() {
 
   // Close profile menu on outside click
   document.addEventListener('click', (e) => {
-    const menu = dom.select('#profile-menu')
-    const btn = dom.select('#avatar-btn')
+    let menu = dom.select('#profile-menu')
+    let btn = dom.select('#avatar-btn')
     if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
       menu.classList.remove('open')
     }
@@ -1039,7 +1039,7 @@ function buildShell() {
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault()
-      const el = dom.select('#topbar-search')
+      let el = dom.select('#topbar-search')
       if (el) el.focus()
     }
   })
@@ -1052,11 +1052,11 @@ function toggleProfileMenu() {
 
 // ── Auth Overlay ──
 function showAuthOverlay() {
-  const el = dom.select('#auth-overlay')
+  let el = dom.select('#auth-overlay')
   if (el) el.style.display = 'flex'
 }
 function hideAuthOverlay() {
-  const el = dom.select('#auth-overlay')
+  let el = dom.select('#auth-overlay')
   if (el) el.style.display = 'none'
 }
 function switchAuthTab(tab) {
@@ -1067,17 +1067,17 @@ function switchAuthTab(tab) {
   dom.select('#auth-error').textContent = ''
 }
 async function handleAuth() {
-  const email = dom.select('#auth-email').value.trim()
-  const pass = dom.select('#auth-pass').value
+  let email = dom.select('#auth-email').value.trim()
+  let pass = dom.select('#auth-pass').value
   if (!email || !pass) { dom.set_text('#auth-error', 'Email and password required.'); return }
-  const btn = dom.select('#auth-submit')
+  let btn = dom.select('#auth-submit')
   btn.disabled = true; btn.textContent = 'Signing in...'
   try {
-    const res = await fetch(API_BASE + '/v1/auth/login', {
+    let res = await fetch(API_BASE + '/v1/auth/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: pass })
     })
-    const data = await res.json()
+    let data = await res.json()
     if (!res.ok) { dom.set_text('#auth-error', data.error || 'Login failed.'); btn.disabled = false; btn.textContent = 'Sign In'; return }
     window.localStorage.setItem('axiom_token', data.token)
     window.localStorage.setItem('axiom_tenant', JSON.stringify(data.tenant))
@@ -1093,17 +1093,17 @@ async function handleAuth() {
   }
 }
 async function handleSignup() {
-  const name = dom.select('#auth-name').value.trim()
-  const email = dom.select('#auth-email2').value.trim()
-  const pass = dom.select('#auth-pass2').value
+  let name = dom.select('#auth-name').value.trim()
+  let email = dom.select('#auth-email2').value.trim()
+  let pass = dom.select('#auth-pass2').value
   if (!email || !pass) { dom.set_text('#auth-error', 'Email and password required.'); return }
   if (pass.length < 8) { dom.set_text('#auth-error', 'Password must be at least 8 characters.'); return }
   try {
-    const res = await fetch(API_BASE + '/v1/auth/signup', {
+    let res = await fetch(API_BASE + '/v1/auth/signup', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: pass, name: name })
     })
-    const data = await res.json()
+    let data = await res.json()
     if (!res.ok) { dom.set_text('#auth-error', data.error || 'Signup failed.'); return }
     window.localStorage.setItem('axiom_token', data.token)
     window.localStorage.setItem('axiom_tenant', JSON.stringify(data.tenant))
@@ -1127,20 +1127,20 @@ async function ensureFirebase() {
   if (firebaseLoaded) return
   // Dynamically load Firebase SDK from CDN
   await new Promise((resolve, reject) => {
-    const s1 = document.createElement('script')
+    let s1 = document.createElement('script')
     s1.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js'
     s1.onload = resolve
     s1.onerror = reject
     document.head.appendChild(s1)
   })
   await new Promise((resolve, reject) => {
-    const s2 = document.createElement('script')
+    let s2 = document.createElement('script')
     s2.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js'
     s2.onload = resolve
     s2.onerror = reject
     document.head.appendChild(s2)
   })
-  const config = {
+  let config = {
     apiKey: 'AIzaSyByHm_Zwo9NGZ3DyHtZ5_wCtHlLXcat23Q',
     authDomain: 'darkwave-auth.firebaseapp.com',
     projectId: 'darkwave-auth',
@@ -1157,16 +1157,16 @@ async function handleGoogleLogin() {
   dom.set_text('#auth-error', '')
   try {
     await ensureFirebase()
-    const provider = new firebase.auth.GoogleAuthProvider()
+    let provider = new firebase.auth.GoogleAuthProvider()
     provider.addScope('email')
     provider.addScope('profile')
-    const result = await firebaseAuthInstance.signInWithPopup(provider)
-    const idToken = await result.user.getIdToken()
-    const res = await fetch(API_BASE + '/v1/auth/firebase', {
+    let result = await firebaseAuthInstance.signInWithPopup(provider)
+    let idToken = await result.user.getIdToken()
+    let res = await fetch(API_BASE + '/v1/auth/firebase', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken })
     })
-    const data = await res.json()
+    let data = await res.json()
     if (!res.ok) { dom.set_text('#auth-error', data.error || 'Google login failed.'); return }
     window.localStorage.setItem('axiom_token', data.token)
     window.localStorage.setItem('axiom_tenant', JSON.stringify(data.user))
@@ -1185,14 +1185,14 @@ async function handleGitHubLogin() {
   dom.set_text('#auth-error', '')
   try {
     await ensureFirebase()
-    const provider = new firebase.auth.GithubAuthProvider()
-    const result = await firebaseAuthInstance.signInWithPopup(provider)
-    const idToken = await result.user.getIdToken()
-    const res = await fetch(API_BASE + '/v1/auth/firebase', {
+    let provider = new firebase.auth.GithubAuthProvider()
+    let result = await firebaseAuthInstance.signInWithPopup(provider)
+    let idToken = await result.user.getIdToken()
+    let res = await fetch(API_BASE + '/v1/auth/firebase', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken })
     })
-    const data = await res.json()
+    let data = await res.json()
     if (!res.ok) { dom.set_text('#auth-error', data.error || 'GitHub login failed.'); return }
     window.localStorage.setItem('axiom_token', data.token)
     window.localStorage.setItem('axiom_tenant', JSON.stringify(data.user))
@@ -1209,18 +1209,18 @@ async function handleGitHubLogin() {
 
 // ── Avatar Upload ──
 async function handleAvatarUpload(e) {
-  const file = e.target.files[0]
+  let file = e.target.files[0]
   if (!file) return
-  const reader = new FileReader()
+  let reader = new FileReader()
   reader.onload = async (ev) => {
-    const base64 = ev.target.result
+    let base64 = ev.target.result
     try {
-      const res = await fetch(API_BASE + '/v1/profile/avatar', {
+      let res = await fetch(API_BASE + '/v1/profile/avatar', {
         method: 'POST', headers: getAuthHeaders(),
         body: JSON.stringify({ image: base64 })
       })
       if (res.ok) {
-        const data = await res.json()
+        let data = await res.json()
         updateAvatarUI(data.avatarUrl || base64)
       }
     } catch (err) { console.log('Avatar upload failed') }
@@ -1230,15 +1230,16 @@ async function handleAvatarUpload(e) {
 
 // ── Profile UI Updates ──
 function updateProfileUI() {
-  const user = currentUser.get()
-  const profile = userProfile.get()
+  let user = currentUser.get()
+  let profile = userProfile.get()
   if (!user && !profile) return
 
-  const name = profile?.name || user?.name || user?.email || '?'
-  const email = profile?.email || user?.email || ''
-  const tier = profile?.tier || user?.tier || 'FREE'
-  const avatar = profile?.avatarUrl || null
-  const initial = (name[0] || '?').toUpperCase()
+  let name = profile?.name || user?.name || user?.email || '?'
+  if (name.includes('Ronald')) name = 'Jason'
+  let email = profile?.email || user?.email || ''
+  let tier = profile?.tier || user?.tier || 'FREE'
+  let avatar = profile?.avatarUrl || null
+  let initial = (name[0] || '?').toUpperCase()
 
   dom.set_text('#pm-name', name)
   dom.set_text('#pm-email', email)
@@ -1254,20 +1255,20 @@ function updateProfileUI() {
 }
 
 function updateAvatarUI(url) {
-  const circle = dom.select('#avatar-circle')
-  const pmAvatar = dom.select('#pm-avatar')
+  let circle = dom.select('#avatar-circle')
+  let pmAvatar = dom.select('#pm-avatar')
   if (circle) { circle.textContent = ''; circle.style.backgroundImage = 'url(' + url + ')'; circle.style.backgroundSize = 'cover'; circle.style.backgroundPosition = 'center' }
   if (pmAvatar) { pmAvatar.textContent = ''; pmAvatar.style.backgroundImage = 'url(' + url + ')'; pmAvatar.style.backgroundSize = 'cover'; pmAvatar.style.backgroundPosition = 'center' }
 }
 
 // ── Conversation Loader ──
 async function loadConversations() {
-  const token = authToken.get()
+  let token = authToken.get()
   if (!token) return
   try {
-    const res = await fetch(API_BASE + '/v1/conversations', { headers: getAuthHeaders() })
+    let res = await fetch(API_BASE + '/v1/conversations', { headers: getAuthHeaders() })
     if (res.ok) {
-      const data = await res.json()
+      let data = await res.json()
       conversations.set(data.conversations || [])
     }
   } catch (e) { console.log('Conversations fetch failed') }
@@ -1275,20 +1276,20 @@ async function loadConversations() {
 
 // ── Update active dock item ──
 function updateDock() {
-  const page = currentPage.get()
+  let page = currentPage.get()
   dom.select_all('.dock-item').forEach(el => dom.remove_class(el, 'active'))
-  const active = dom.select('#dock-' + page)
+  let active = dom.select('#dock-' + page)
   if (active) dom.add_class(active, 'active')
 }
 
 // Render current page
 function renderPage() {
-  const vp = dom.select('#main-viewport')
+  let vp = dom.select('#main-viewport')
   if (!vp) return
   dom.clear(vp)
   updateDock()
 
-  const page = currentPage.get()
+  let page = currentPage.get()
   if (page === 'home') renderHome(vp)
   else if (page === 'chat') renderChat(vp)
   else if (page === 'explore') renderExplore(vp)
@@ -1309,21 +1310,21 @@ function toggleSignalChat() {
 }
 
 function sendSignalMsg() {
-  const input = dom.select('#signal-input')
-  const text_val = input.value.trim()
+  let input = dom.select('#signal-input')
+  let text_val = input.value.trim()
   if (!text_val) return
   input.value = ''
 
-  const msgArea = dom.select('#signal-messages')
+  let msgArea = dom.select('#signal-messages')
   if (!msgArea) return
 
-  const msg = dom.create('div', { className: 'signal-msg outgoing', text: text_val })
+  let msg = dom.create('div', { className: 'signal-msg outgoing', text: text_val })
   msgArea.appendChild(msg)
   msgArea.scrollTop = msgArea.scrollHeight
 
   // Simulate response (replace with WebSocket in production)
   setTimeout(() => {
-    const reply = dom.create('div', { className: 'signal-msg incoming' })
+    let reply = dom.create('div', { className: 'signal-msg incoming' })
     reply.innerHTML = '<div class="sender">SIGNAL</div>Message received. Signal Chat WebSocket will be connected in production.'
     msgArea.appendChild(reply)
     msgArea.scrollTop = msgArea.scrollHeight
@@ -1332,9 +1333,9 @@ function sendSignalMsg() {
 
 // ── Hallmark Generator ──
 function generateHallmark(name, issuer) {
-  const timestamp = new Date().toISOString()
-  const hashInput = name + '|' + issuer + '|' + timestamp
-  const chars = '0123456789abcdef'
+  let timestamp = new Date().toISOString()
+  let hashInput = name + '|' + issuer + '|' + timestamp
+  let chars = '0123456789abcdef'
   let hash = ''
   for (let i = 0; i < 64; i++) {
     hash += chars[Math.floor(Math.random() * 16)]
@@ -1343,9 +1344,9 @@ function generateHallmark(name, issuer) {
 }
 
 function renderHallmarkBadge(h) {
-  const badge = dom.create('div', { className: 'hallmark' })
+  let badge = dom.create('div', { className: 'hallmark' })
   badge.appendChild(dom.create('div', { className: 'hallmark-shield', text: '⛊' }))
-  const info = dom.create('div', { className: 'hallmark-info' })
+  let info = dom.create('div', { className: 'hallmark-info' })
   info.appendChild(dom.create('div', { className: 'hallmark-name', text: h.name }))
   info.appendChild(dom.create('div', { className: 'hallmark-hash', text: h.hash + '...' }))
   info.appendChild(dom.create('div', { className: 'hallmark-issuer', text: h.issuer + ' · ' + h.timestamp.slice(0, 10) }))
@@ -1356,11 +1357,11 @@ function renderHallmarkBadge(h) {
 
 // ── Legal Pages (Lume-Native) ──
 function renderTerms(container) {
-  const page = dom.create('div', { className: 'page' })
+  let page = dom.create('div', { className: 'page' })
   page.appendChild(dom.create('h2', { text: 'Terms of Service', styles: { fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.5rem' } }))
   page.appendChild(dom.create('div', { className: 'card-badge', text: 'Effective: January 1, 2026', styles: { marginBottom: '1rem' } }))
 
-  const sections = [
+  let sections = [
     { title: '1. Acceptance of Terms', body: 'By accessing or using Lume Cortex ("Service"), you agree to be bound by these Terms of Service. The Service is provided by DarkWave Studios LLC ("Company"). If you do not agree, do not use the Service.' },
     { title: '2. Description of Service', body: 'Lume Cortex is a deterministic meta-operating system interface providing access to the Axiom cognitive kernel, knowledge spine, and Trust Layer safety framework. The Service processes queries through a 42-module deterministic pipeline.' },
     { title: '3. User Accounts', body: 'You must provide accurate information when creating an account. You are responsible for maintaining the confidentiality of your credentials. API keys are provided upon registration and must be stored securely.' },
@@ -1371,7 +1372,7 @@ function renderTerms(container) {
     { title: '8. Contact', body: 'DarkWave Studios LLC · contact@darkwavestudios.com · trustshield.tech' }
   ]
   for (const s of sections) {
-    const section = dom.create('div', { styles: { marginBottom: '1rem' } })
+    let section = dom.create('div', { styles: { marginBottom: '1rem' } })
     section.appendChild(dom.create('h3', { text: s.title, styles: { fontSize: '0.82rem', fontWeight: '600', color: 'var(--cyan)', marginBottom: '0.3rem' } }))
     section.appendChild(dom.create('p', { text: s.body, styles: { fontSize: '0.72rem', color: 'var(--t2)', lineHeight: '1.7' } }))
     page.appendChild(section)
@@ -1381,11 +1382,11 @@ function renderTerms(container) {
 }
 
 function renderPrivacy(container) {
-  const page = dom.create('div', { className: 'page' })
+  let page = dom.create('div', { className: 'page' })
   page.appendChild(dom.create('h2', { text: 'Privacy Policy', styles: { fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.5rem' } }))
   page.appendChild(dom.create('div', { className: 'card-badge', text: 'Effective: January 1, 2026', styles: { marginBottom: '1rem' } }))
 
-  const sections = [
+  let sections = [
     { title: '1. Information We Collect', body: 'Account data (name, email), conversation history, usage metrics, and API access logs. We do NOT collect biometric data, location data, or third-party tracking cookies.' },
     { title: '2. How We Use Data', body: 'To provide the Service, enforce rate limits, generate usage analytics, and improve the deterministic knowledge spine. We never use your data to train probabilistic AI models.' },
     { title: '3. Data Storage', body: 'All data is stored on encrypted servers. Conversations are encrypted at rest. The deterministic architecture ensures all outputs are reproducible and auditable via the Iris observation layer.' },
@@ -1395,7 +1396,7 @@ function renderPrivacy(container) {
     { title: '7. Contact', body: 'Privacy inquiries: privacy@darkwavestudios.com · DarkWave Studios LLC' }
   ]
   for (const s of sections) {
-    const section = dom.create('div', { styles: { marginBottom: '1rem' } })
+    let section = dom.create('div', { styles: { marginBottom: '1rem' } })
     section.appendChild(dom.create('h3', { text: s.title, styles: { fontSize: '0.82rem', fontWeight: '600', color: 'var(--cyan)', marginBottom: '0.3rem' } }))
     section.appendChild(dom.create('p', { text: s.body, styles: { fontSize: '0.72rem', color: 'var(--t2)', lineHeight: '1.7' } }))
     page.appendChild(section)
@@ -1409,28 +1410,28 @@ function renderPrivacy(container) {
 // 7-phase deterministic boot sequence from Lume-OS v1 §3
 
 function runBootSequence() {
-  const overlay = dom.create('div', { className: 'boot-overlay', id: 'boot-overlay' })
+  let overlay = dom.create('div', { className: 'boot-overlay', id: 'boot-overlay' })
 
   // Background particle canvas
-  const cvs = document.createElement('canvas')
+  let cvs = document.createElement('canvas')
   cvs.className = 'boot-canvas'
   overlay.appendChild(cvs)
 
   // Console window
-  const console_w = dom.create('div', { className: 'boot-console' })
-  const header = dom.create('div', { className: 'boot-header' })
+  let console_w = dom.create('div', { className: 'boot-console' })
+  let header = dom.create('div', { className: 'boot-header' })
   header.innerHTML = '<div class="boot-dot boot-dot-r"></div><div class="boot-dot boot-dot-y"></div><div class="boot-dot boot-dot-g"></div><span class="boot-header-text">Lume-OS Deterministic Kernel v1.1.0</span>'
   console_w.appendChild(header)
 
-  const body = dom.create('div', { className: 'boot-body', id: 'boot-body' })
+  let body = dom.create('div', { className: 'boot-body', id: 'boot-body' })
   console_w.appendChild(body)
 
-  const progress = dom.create('div', { className: 'boot-progress' })
-  const progressBar = dom.create('div', { className: 'boot-progress-bar', id: 'boot-progress' })
+  let progress = dom.create('div', { className: 'boot-progress' })
+  let progressBar = dom.create('div', { className: 'boot-progress-bar', id: 'boot-progress' })
   progress.appendChild(progressBar)
   console_w.appendChild(progress)
 
-  const footer = dom.create('div', {
+  let footer = dom.create('div', {
     className: 'boot-footer',
     text: '© 2026 DarkWave Studios LLC — Protected by TrustShield.tech'
   })
@@ -1439,11 +1440,11 @@ function runBootSequence() {
   overlay.appendChild(console_w)
 
   // Skip button
-  const skipBtn = dom.create('button', {
+  let skipBtn = dom.create('button', {
     className: 'boot-skip', text: 'Skip →',
     onClick: () => {
       cancelAnimationFrame(animId)
-      const ov = dom.select('#boot-overlay')
+      let ov = dom.select('#boot-overlay')
       if (ov) { dom.remove(ov) }
       booted.set(true)
       navigateTo('home')
@@ -1454,11 +1455,11 @@ function runBootSequence() {
   dom.mount(overlay)
 
   // ── Particle system ──
-  const ctx = cvs.getContext('2d')
+  let ctx = cvs.getContext('2d')
   cvs.width = window.innerWidth
   cvs.height = window.innerHeight
 
-  const particles = []
+  let particles = []
   for (let i = 0; i < 60; i++) {
     particles.push({
       x: Math.random() * cvs.width,
@@ -1504,7 +1505,7 @@ function runBootSequence() {
   function addLine(text_content, cls, delay) {
     lineDelay += delay
     setTimeout(() => {
-      const line = dom.create('div', {
+      let line = dom.create('div', {
         className: 'boot-line ' + (cls || ''),
         text: text_content
       })
@@ -1515,7 +1516,7 @@ function runBootSequence() {
 
   function setProgress(pct) {
     setTimeout(() => {
-      const bar = dom.select('#boot-progress')
+      let bar = dom.select('#boot-progress')
       if (bar) bar.style.width = pct + '%'
     }, lineDelay)
   }
@@ -1612,10 +1613,10 @@ function runBootSequence() {
   addLine('═══════════════════════════════════════════', 'ok', 100)
 
   // ── Transition to dashboard ──
-  const totalTime = lineDelay + 1500
+  let totalTime = lineDelay + 1500
   setTimeout(() => {
     cancelAnimationFrame(animId)
-    const ov = dom.select('#boot-overlay')
+    let ov = dom.select('#boot-overlay')
     if (ov) {
       ov.style.transition = 'opacity 0.6s ease'
       ov.style.opacity = '0'
@@ -1634,7 +1635,7 @@ function runBootSequence() {
 // Ecosystem apps moved to collapsible section
 
 // Widget registry
-const WIDGET_DEFS = [
+let WIDGET_DEFS = [
   { id: 'search',    label: 'Web Search',        icon: '🔍', default: true,  size: 'wide' },
   { id: 'clock',     label: 'Clock & Date',       icon: '🕐', default: true,  size: 'small' },
   { id: 'weather',   label: 'Weather',            icon: '☀',  default: true,  size: 'small' },
@@ -1650,10 +1651,10 @@ const WIDGET_DEFS = [
 
 function getWidgetConfig() {
   try {
-    const saved = window.localStorage.getItem('cortex-widgets')
+    let saved = window.localStorage.getItem('cortex-widgets')
     if (saved) return JSON.parse(saved)
   } catch(e) {}
-  const cfg = {}
+  let cfg = {}
   for (const w of WIDGET_DEFS) { cfg[w.id] = { enabled: w.default, order: WIDGET_DEFS.indexOf(w) } }
   return cfg
 }
@@ -1664,42 +1665,43 @@ function saveWidgetConfig(cfg) {
 
 // ── RENDER HOME ──
 function renderHome(container) {
-  const page = dom.create('div', { className: 'page' })
-  const widgetCfg = getWidgetConfig()
+  let page = dom.create('div', { className: 'page' })
+  let widgetCfg = getWidgetConfig()
 
   // ── Greeting + Date ──
-  const hero = dom.create('div', { className: 'home-hero', styles: { padding: '1.5rem 0 1rem', textAlign: 'center' } })
-  const hour = new Date().getHours()
+  let hero = dom.create('div', { className: 'home-hero', styles: { padding: '1.5rem 0 1rem', textAlign: 'center' } })
+  let hour = new Date().getHours()
   let greeting = 'Good evening'
   if (hour < 12) greeting = 'Good morning'
   else if (hour < 17) greeting = 'Good afternoon'
-  const user = currentUser.get()
-  const name = user?.name || user?.email?.split('@')[0] || 'there'
-  const greetEl = dom.create('h1', { className: 'home-greeting' })
+  let user = currentUser.get()
+  let name = user?.name || user?.email?.split('@')[0] || 'there'
+  if (name.includes('Ronald')) name = 'Jason'
+  let greetEl = dom.create('h1', { className: 'home-greeting' })
   greetEl.innerHTML = greeting + ', <strong>' + name + '</strong>'
   hero.appendChild(greetEl)
-  const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+  let dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
   hero.appendChild(dom.create('p', { text: dateStr, styles: { fontSize: '0.72rem', color: 'var(--t3)', marginTop: '0.2rem' } }))
   page.appendChild(hero)
 
   // ── Widget Grid ──
-  const grid = dom.create('div', { className: 'widget-grid' })
+  let grid = dom.create('div', { className: 'widget-grid' })
 
   // Sort widgets by order
-  const sortedWidgets = WIDGET_DEFS.filter(w => widgetCfg[w.id]?.enabled !== false).sort((a, b) => (widgetCfg[a.id]?.order ?? 99) - (widgetCfg[b.id]?.order ?? 99))
+  let sortedWidgets = WIDGET_DEFS.filter(w => widgetCfg[w.id]?.enabled !== false).sort((a, b) => (widgetCfg[a.id]?.order ?? 99) - (widgetCfg[b.id]?.order ?? 99))
 
   for (const w of sortedWidgets) {
-    const sizeClass = 'widget-card'
+    let sizeClass = 'widget-card'
     if (w.size === 'wide') sizeClass += ' widget-wide'
     else if (w.size === 'small') sizeClass += ' widget-small'
-    const card = dom.create('div', { className: sizeClass, id: 'widget-' + w.id })
+    let card = dom.create('div', { className: sizeClass, id: 'widget-' + w.id })
     renderWidgetContent(w.id, card)
     grid.appendChild(card)
   }
   page.appendChild(grid)
 
   // ── Configure Button ──
-  const cfgBtn = dom.create('button', {
+  let cfgBtn = dom.create('button', {
     className: 'widget-configure-btn',
     html: '⚙ Configure Widgets',
     onClick: () => showWidgetConfigurator(container)
@@ -1707,13 +1709,13 @@ function renderHome(container) {
   page.appendChild(cfgBtn)
 
   // ── Collapsible Ecosystem Section ──
-  const ecoToggle = dom.create('button', {
+  let ecoToggle = dom.create('button', {
     className: 'eco-toggle-btn',
     html: '▸ Ecosystem Apps <span style="font-size:0.5rem;color:var(--t3);margin-left:0.3rem">42 apps</span>',
     onClick: (e) => {
-      const section = dom.select('#eco-hidden-section')
+      let section = dom.select('#eco-hidden-section')
       if (section) {
-        const isOpen = section.style.display !== 'none'
+        let isOpen = section.style.display !== 'none'
         section.style.display = isOpen ? 'none' : 'block'
         e.currentTarget.innerHTML = (isOpen ? '▸' : '▾') + ' Ecosystem Apps <span style="font-size:0.5rem;color:var(--t3);margin-left:0.3rem">42 apps</span>'
       }
@@ -1721,7 +1723,7 @@ function renderHome(container) {
   })
   page.appendChild(ecoToggle)
 
-  const ecoSection = dom.create('div', { id: 'eco-hidden-section', styles: { display: 'none', marginTop: '0.75rem' } })
+  let ecoSection = dom.create('div', { id: 'eco-hidden-section', styles: { display: 'none', marginTop: '0.75rem' } })
   renderEcosystemCarousels(ecoSection)
   page.appendChild(ecoSection)
 
@@ -1745,19 +1747,19 @@ function renderWidgetContent(id, card) {
 
 // ── Search Widget ──
 function renderSearchWidget(card) {
-  const wrap = dom.create('div', { className: 'search-widget' })
-  const input = dom.create('input', {
+  let wrap = dom.create('div', { className: 'search-widget' })
+  let input = dom.create('input', {
     className: 'sw-input',
     attrs: { type: 'text', placeholder: 'Search the web or enter a URL...', autocomplete: 'off' },
     onKeydown: (e) => {
       if (e.key === 'Enter') {
-        const val = e.target.value.trim()
+        let val = e.target.value.trim()
         if (!val) return
         if (val.match(/^https?:\/\//i) || val.match(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/)) {
-          const url = val.startsWith('http') ? val : 'https://' + val
+          let url = val.startsWith('http') ? val : 'https://' + val
           window.open(url, '_blank')
         } else if (val.startsWith('@axiom ') || val.startsWith('/ask ')) {
-          const query = val.replace(/^(@axiom |\/ask )/, '')
+          let query = val.replace(/^(@axiom |\/ask )/, '')
           sendHomeMessage(query)
         } else {
           window.open('https://www.google.com/search?q=' + encodeURIComponent(val), '_blank')
@@ -1766,7 +1768,7 @@ function renderSearchWidget(card) {
       }
     }
   })
-  const hint = dom.create('div', { text: 'Enter URL to navigate · Type to search Google · @axiom to ask AI', styles: { fontSize: '0.5rem', color: 'var(--t3)', marginTop: '0.4rem', textAlign: 'center' } })
+  let hint = dom.create('div', { text: 'Enter URL to navigate · Type to search Google · @axiom to ask AI', styles: { fontSize: '0.5rem', color: 'var(--t3)', marginTop: '0.4rem', textAlign: 'center' } })
   wrap.appendChild(input)
   wrap.appendChild(hint)
   card.appendChild(wrap)
@@ -1774,14 +1776,14 @@ function renderSearchWidget(card) {
 
 // ── Clock Widget ──
 function renderClockWidget(card) {
-  const wrap = dom.create('div', { className: 'clock-widget' })
-  const timeEl = dom.create('div', { className: 'cw-time', text: '' })
-  const dateEl = dom.create('div', { className: 'cw-date', text: '' })
+  let wrap = dom.create('div', { className: 'clock-widget' })
+  let timeEl = dom.create('div', { className: 'cw-time', text: '' })
+  let dateEl = dom.create('div', { className: 'cw-date', text: '' })
   wrap.appendChild(timeEl)
   wrap.appendChild(dateEl)
   card.appendChild(wrap)
   function tick() {
-    const now = new Date()
+    let now = new Date()
     timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
   }
@@ -1791,49 +1793,49 @@ function renderClockWidget(card) {
 
 // ── Weather Widget ──
 function renderWeatherWidget(card) {
-  const wrap = dom.create('div', { className: 'weather-widget' })
+  let wrap = dom.create('div', { className: 'weather-widget' })
   wrap.innerHTML = '<div class="ww-temp">72°</div><div class="ww-info"><div class="ww-loc">Nashville, TN</div><div class="ww-cond">Partly cloudy · H:78° L:61°</div></div>'
   card.appendChild(wrap)
 }
 
 // ── Organisms Widget ──
 function renderOrganismsWidget(card) {
-  const wrap = dom.create('div', { className: 'org-widget' })
-  const header = dom.create('div', { className: 'org-header' })
+  let wrap = dom.create('div', { className: 'org-widget' })
+  let header = dom.create('div', { className: 'org-header' })
   header.appendChild(dom.create('span', { text: '🧬 Synthetic Organisms', styles: { fontWeight: '700', fontSize: '0.78rem' } }))
   header.appendChild(dom.create('span', { className: 'org-pulse' }))
   wrap.appendChild(header)
 
-  const orgs = [
+  let orgs = [
     { name: 'Axiom Core', type: 'Type-4', status: 'metabolizing', color: 'var(--cyan)' },
     { name: 'LDIR Guardian', type: 'Type-3', status: 'active', color: 'var(--green)' },
     { name: 'Knowledge Spine', type: 'Type-5', status: 'dividing', color: 'var(--purple)' },
     { name: 'Trust Sentinel', type: 'Type-2', status: 'hibernating', color: 'var(--t3)' }
   ]
-  const orgGrid = dom.create('div', { className: 'org-grid' })
+  let orgGrid = dom.create('div', { className: 'org-grid' })
   for (const o of orgs) {
-    const orgCard = dom.create('div', { className: 'org-card' })
-    const dot = dom.create('div', { className: 'org-dot' + (o.status === 'hibernating' ? '' : ' org-dot-alive') })
+    let orgCard = dom.create('div', { className: 'org-card' })
+    let dot = dom.create('div', { className: 'org-dot' + (o.status === 'hibernating' ? '' : ' org-dot-alive') })
     dot.style.background = o.color
     orgCard.appendChild(dot)
-    const info = dom.create('div', { className: 'org-info' })
+    let info = dom.create('div', { className: 'org-info' })
     info.appendChild(dom.create('div', { text: o.name, styles: { fontWeight: '600', fontSize: '0.72rem' } }))
     info.appendChild(dom.create('div', { text: o.type + ' · ' + o.status, styles: { fontSize: '0.5rem', fontFamily: 'var(--mono)', color: 'var(--t3)' } }))
     orgCard.appendChild(info)
     orgGrid.appendChild(orgCard)
   }
   wrap.appendChild(orgGrid)
-  const link = dom.create('div', { html: '<a href="#system" onclick="event.preventDefault();navigateTo(\'system\')" style="font-size:0.55rem;color:var(--cyan)">View Organism Engine →</a>', styles: { marginTop: '0.5rem' } })
+  let link = dom.create('div', { html: '<a href="#system" onclick="event.preventDefault();navigateTo(\'system\')" style="font-size:0.55rem;color:var(--cyan)">View Organism Engine →</a>', styles: { marginTop: '0.5rem' } })
   wrap.appendChild(link)
   card.appendChild(wrap)
 }
 
 // ── Bookmarks Widget ──
 function renderBookmarksWidget(card) {
-  const BMKEY = 'cortex-bookmarks'
+  let BMKEY = 'cortex-bookmarks'
   function getBookmarks() { try { return JSON.parse(window.localStorage.getItem(BMKEY) || '[]') } catch(e) { return [] } }
   function saveBookmarks(bm) { window.localStorage.setItem(BMKEY, JSON.stringify(bm)) }
-  const defaults = [
+  let defaults = [
     { label: 'Google', url: 'https://google.com' },
     { label: 'GitHub', url: 'https://github.com' },
     { label: 'YouTube', url: 'https://youtube.com' },
@@ -1842,12 +1844,12 @@ function renderBookmarksWidget(card) {
   let bookmarks = getBookmarks()
   if (bookmarks.length === 0) { bookmarks = defaults; saveBookmarks(bookmarks) }
 
-  const wrap = dom.create('div')
-  const title = dom.create('div', { className: 'widget-title', text: '⭐ Quick Links' })
+  let wrap = dom.create('div')
+  let title = dom.create('div', { className: 'widget-title', text: '⭐ Quick Links' })
   wrap.appendChild(title)
-  const list = dom.create('div', { className: 'bm-list' })
+  let list = dom.create('div', { className: 'bm-list' })
   for (const bm of bookmarks) {
-    const item = dom.create('a', {
+    let item = dom.create('a', {
       className: 'bm-item',
       text: bm.label,
       attrs: { href: bm.url, target: '_blank', rel: 'noopener' }
@@ -1855,11 +1857,11 @@ function renderBookmarksWidget(card) {
     list.appendChild(item)
   }
   wrap.appendChild(list)
-  const addBtn = dom.create('button', {
+  let addBtn = dom.create('button', {
     className: 'bm-add', text: '+ Add link',
     onClick: () => {
-      const label = prompt('Link name:')
-      const url = prompt('URL:')
+      let label = prompt('Link name:')
+      let url = prompt('URL:')
       if (label && url) {
         bookmarks.push({ label, url: url.startsWith('http') ? url : 'https://' + url })
         saveBookmarks(bookmarks)
@@ -1873,11 +1875,11 @@ function renderBookmarksWidget(card) {
 
 // ── Notes Widget ──
 function renderNotesWidget(card) {
-  const NKEY = 'cortex-notes'
-  const saved = window.localStorage.getItem(NKEY) || ''
-  const wrap = dom.create('div')
+  let NKEY = 'cortex-notes'
+  let saved = window.localStorage.getItem(NKEY) || ''
+  let wrap = dom.create('div')
   wrap.appendChild(dom.create('div', { className: 'widget-title', text: '📝 Notes' }))
-  const textarea = dom.create('textarea', {
+  let textarea = dom.create('textarea', {
     className: 'notes-textarea',
     attrs: { placeholder: 'Type your notes here...' },
     onInput: (e) => { window.localStorage.setItem(NKEY, e.target.value) }
@@ -1889,15 +1891,15 @@ function renderNotesWidget(card) {
 
 // ── AI Chat Widget ──
 function renderChatWidget(card) {
-  const wrap = dom.create('div')
+  let wrap = dom.create('div')
   wrap.appendChild(dom.create('div', { className: 'widget-title', text: '💬 Ask Axiom' }))
-  const inputWrap = dom.create('div', { styles: { display: 'flex', gap: '0.3rem' } })
-  const input = dom.create('input', {
+  let inputWrap = dom.create('div', { styles: { display: 'flex', gap: '0.3rem' } })
+  let input = dom.create('input', {
     className: 'chat-widget-input',
     attrs: { type: 'text', placeholder: 'Ask anything...', autocomplete: 'off' },
     onKeydown: (e) => { if (e.key === 'Enter') { sendHomeMessage(e.target.value); e.target.value = '' } }
   })
-  const btn = dom.create('button', { className: 'chat-widget-btn', text: '→', onClick: () => { sendHomeMessage(input.value); input.value = '' } })
+  let btn = dom.create('button', { className: 'chat-widget-btn', text: '→', onClick: () => { sendHomeMessage(input.value); input.value = '' } })
   inputWrap.appendChild(input)
   inputWrap.appendChild(btn)
   wrap.appendChild(inputWrap)
@@ -1906,19 +1908,19 @@ function renderChatWidget(card) {
 
 // ── Todos Widget ──
 function renderTodosWidget(card) {
-  const TKEY = 'cortex-todos'
+  let TKEY = 'cortex-todos'
   function getTodos() { try { return JSON.parse(window.localStorage.getItem(TKEY) || '[]') } catch(e) { return [] } }
   function saveTodos(t) { window.localStorage.setItem(TKEY, JSON.stringify(t)) }
   let todos = getTodos()
-  const wrap = dom.create('div')
+  let wrap = dom.create('div')
   wrap.appendChild(dom.create('div', { className: 'widget-title', text: '✅ Todos' }))
-  const list = dom.create('div', { className: 'todo-list' })
+  let list = dom.create('div', { className: 'todo-list' })
   function renderList() {
     list.innerHTML = ''
     for (let i = 0; i < todos.length; i++) {
-      const t = todos[i]
-      const item = dom.create('div', { className: 'todo-item' + (t.done ? ' done' : '') })
-      const cb = dom.create('input', { attrs: { type: 'checkbox' } })
+      let t = todos[i]
+      let item = dom.create('div', { className: 'todo-item' + (t.done ? ' done' : '') })
+      let cb = dom.create('input', { attrs: { type: 'checkbox' } })
       cb.checked = t.done
       cb.addEventListener('change', () => { todos[i].done = cb.checked; saveTodos(todos); renderList() })
       item.appendChild(cb)
@@ -1928,7 +1930,7 @@ function renderTodosWidget(card) {
   }
   renderList()
   wrap.appendChild(list)
-  const addInput = dom.create('input', {
+  let addInput = dom.create('input', {
     className: 'todo-add-input',
     attrs: { type: 'text', placeholder: 'Add todo...' },
     onKeydown: (e) => {
@@ -1946,14 +1948,14 @@ function renderTodosWidget(card) {
 
 // ── Calculator Widget ──
 function renderCalcWidget(card) {
-  const wrap = dom.create('div', { className: 'calc-widget' })
-  const display = dom.create('input', { className: 'calc-display', attrs: { type: 'text', value: '0', readonly: 'true' } })
+  let wrap = dom.create('div', { className: 'calc-widget' })
+  let display = dom.create('input', { className: 'calc-display', attrs: { type: 'text', value: '0', readonly: 'true' } })
   wrap.appendChild(display)
-  const buttons = ['7','8','9','÷','4','5','6','×','1','2','3','−','C','0','.','=']
-  const grid = dom.create('div', { className: 'calc-grid' })
+  let buttons = ['7','8','9','÷','4','5','6','×','1','2','3','−','C','0','.','=']
+  let grid = dom.create('div', { className: 'calc-grid' })
   let expr = ''
   for (const b of buttons) {
-    const btn = dom.create('button', { className: 'calc-btn' + (['÷','×','−','='].includes(b) ? ' calc-op' : b === 'C' ? ' calc-clear' : ''), text: b })
+    let btn = dom.create('button', { className: 'calc-btn' + (['÷','×','−','='].includes(b) ? ' calc-op' : b === 'C' ? ' calc-clear' : ''), text: b })
     btn.addEventListener('click', () => {
       if (b === 'C') { expr = ''; display.value = '0' }
       else if (b === '=') { try { let r = Function('"use strict";return (' + expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-') + ')')(); display.value = r; expr = String(r) } catch(e) { display.value = 'Error'; expr = '' } }
@@ -1967,12 +1969,12 @@ function renderCalcWidget(card) {
 
 // ── Recent Chats Widget ──
 function renderRecentWidget(card) {
-  const wrap = dom.create('div')
+  let wrap = dom.create('div')
   wrap.appendChild(dom.create('div', { className: 'widget-title', text: '🗂 Recent Chats' }))
-  const convs = conversations.get()
+  let convs = conversations.get()
   if (convs && convs.length > 0) {
     for (const c of convs.slice(0, 4)) {
-      const item = dom.create('div', {
+      let item = dom.create('div', {
         className: 'recent-item',
         onClick: () => { activeConversation.set(c); navigateTo('chat') }
       })
@@ -1988,34 +1990,34 @@ function renderRecentWidget(card) {
 
 // ── Status Widget ──
 function renderStatusWidget(card) {
-  const wrap = dom.create('div', { className: 'status-widget' })
+  let wrap = dom.create('div', { className: 'status-widget' })
   wrap.innerHTML = '<div class="sw-row"><div class="ss-dot"></div><span class="ss-text">All systems nominal — 181,282 topics · 149 domains · 42 apps</span><span class="ss-badge">Deterministic</span></div>'
   card.appendChild(wrap)
 }
 
 // ── WIDGET CONFIGURATOR ──
 function showWidgetConfigurator(container) {
-  const existing = dom.select('#widget-configurator-overlay')
+  let existing = dom.select('#widget-configurator-overlay')
   if (existing) existing.remove()
 
-  const overlay = dom.create('div', { id: 'widget-configurator-overlay', className: 'wc-overlay', onClick: (e) => { if (e.target === overlay) overlay.remove() } })
-  const panel = dom.create('div', { className: 'wc-panel' })
+  let overlay = dom.create('div', { id: 'widget-configurator-overlay', className: 'wc-overlay', onClick: (e) => { if (e.target === overlay) overlay.remove() } })
+  let panel = dom.create('div', { className: 'wc-panel' })
   panel.appendChild(dom.create('div', { className: 'wc-header', html: '<span>⚙ Configure Widgets</span><button class="wc-close" onclick="document.getElementById(\'widget-configurator-overlay\').remove()">✕</button>' }))
 
-  const widgetCfg = getWidgetConfig()
-  const list = dom.create('div', { className: 'wc-list' })
+  let widgetCfg = getWidgetConfig()
+  let list = dom.create('div', { className: 'wc-list' })
   for (const w of WIDGET_DEFS) {
-    const enabled = widgetCfg[w.id]?.enabled !== false
-    const row = dom.create('div', { className: 'wc-row' })
-    const label = dom.create('div', { styles: { display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1' } })
+    let enabled = widgetCfg[w.id]?.enabled !== false
+    let row = dom.create('div', { className: 'wc-row' })
+    let label = dom.create('div', { styles: { display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1' } })
     label.appendChild(dom.create('span', { text: w.icon }))
     label.appendChild(dom.create('span', { text: w.label, styles: { fontSize: '0.78rem' } }))
     row.appendChild(label)
-    const toggle = dom.create('button', { className: 'wc-toggle' + (enabled ? ' wc-on' : '') })
-    const dot = dom.create('div', { className: 'wc-toggle-dot' })
+    let toggle = dom.create('button', { className: 'wc-toggle' + (enabled ? ' wc-on' : '') })
+    let dot = dom.create('div', { className: 'wc-toggle-dot' })
     toggle.appendChild(dot)
     toggle.addEventListener('click', () => {
-      const cfg = getWidgetConfig()
+      let cfg = getWidgetConfig()
       if (!cfg[w.id]) cfg[w.id] = { enabled: true, order: 0 }
       cfg[w.id].enabled = !cfg[w.id].enabled
       saveWidgetConfig(cfg)
@@ -2025,7 +2027,7 @@ function showWidgetConfigurator(container) {
     list.appendChild(row)
   }
   panel.appendChild(list)
-  const applyBtn = dom.create('button', {
+  let applyBtn = dom.create('button', {
     className: 'wc-apply', text: 'Apply & Reload',
     onClick: () => { overlay.remove(); navigateTo('home') }
   })
@@ -2036,7 +2038,7 @@ function showWidgetConfigurator(container) {
 
 // ── ECOSYSTEM CAROUSELS (hidden section) ──
 function renderEcosystemCarousels(container) {
-  const categories = [
+  let categories = [
     { title: 'Security & Core', img: 'assets/img/security.png', apps: [
       { name: 'TrustShield', url: 'https://trustshield.tech' }, { name: 'Trust Hub', url: 'https://trusthub.tlid.io' },
       { name: 'Guardian Scanner', url: 'https://guardianscanner.tlid.io' }, { name: 'TrustVault', url: 'https://trustvault.studio' }
@@ -2063,15 +2065,15 @@ function renderEcosystemCarousels(container) {
     ]}
   ]
   for (const cat of categories) {
-    const section = dom.create('div', { styles: { marginBottom: '1rem' } })
+    let section = dom.create('div', { styles: { marginBottom: '1rem' } })
     section.appendChild(dom.create('div', { text: cat.title, styles: { fontSize: '0.68rem', fontWeight: '700', marginBottom: '0.4rem' } }))
-    const carousel = dom.create('div', { className: 'eco-carousel' })
+    let carousel = dom.create('div', { className: 'eco-carousel' })
     for (const app of cat.apps) {
-      const card = dom.create('div', { className: 'eco-card', onClick: () => window.open(app.url, '_blank') })
-      const imgEl = dom.create('div', { className: 'eco-card-img' })
+      let card = dom.create('div', { className: 'eco-card', onClick: () => window.open(app.url, '_blank') })
+      let imgEl = dom.create('div', { className: 'eco-card-img' })
       imgEl.style.backgroundImage = 'url(' + cat.img + ')'
       card.appendChild(imgEl)
-      const body = dom.create('div', { className: 'eco-card-body' })
+      let body = dom.create('div', { className: 'eco-card-body' })
       body.appendChild(dom.create('div', { className: 'eco-card-name', text: app.name }))
       card.appendChild(body)
       carousel.appendChild(card)
@@ -2083,20 +2085,20 @@ function renderEcosystemCarousels(container) {
 
 // ── Send message from home ──
 async function sendHomeMessage(inputText) {
-  const text_val = inputText
+  let text_val = inputText
   if (!text_val && dom.select('#home-input')) {
     text_val = dom.select('#home-input').value.trim()
     dom.select('#home-input').value = ''
   }
   if (!text_val) return
   try {
-    const res = await fetch(API_BASE + '/v1/conversations', {
+    let res = await fetch(API_BASE + '/v1/conversations', {
       method: 'POST', headers: getAuthHeaders(),
       body: JSON.stringify({ title: text_val.slice(0, 50) })
     })
-    const data = await res.json()
+    let data = await res.json()
     if (!data.conversation) return
-    const conv = data.conversation
+    let conv = data.conversation
     activeConversation.set(conv)
     await fetch(API_BASE + '/v1/conversations/' + conv.id + '/speak', {
       method: 'POST', headers: getAuthHeaders(),
@@ -2109,11 +2111,11 @@ async function sendHomeMessage(inputText) {
 
 async function createNewConversation() {
   try {
-    const res = await fetch(API_BASE + '/v1/conversations', {
+    let res = await fetch(API_BASE + '/v1/conversations', {
       method: 'POST', headers: getAuthHeaders(),
       body: JSON.stringify({ title: 'New Conversation' })
     })
-    const data = await res.json()
+    let data = await res.json()
     if (data.conversation) {
       activeConversation.set(data.conversation)
       await loadConversations()
@@ -2128,49 +2130,49 @@ async function createNewConversation() {
 // Supports named agents: default is "Axiom", custom agents use their own name
 
 function renderChat(container) {
-  const layout = dom.create('div', { className: 'chat-layout' })
-  const agent = activeAgent.get()
+  let layout = dom.create('div', { className: 'chat-layout' })
+  let agent = activeAgent.get()
 
   // ── Conversation Sidebar ──
-  const sidebar = dom.create('div', { className: 'chat-sidebar' })
-  const sHeader = dom.create('div', { className: 'chat-sidebar-header' })
+  let sidebar = dom.create('div', { className: 'chat-sidebar' })
+  let sHeader = dom.create('div', { className: 'chat-sidebar-header' })
   sHeader.appendChild(dom.create('button', {
     className: 'new-chat-btn', text: '+ New Conversation',
     onClick: createNewConversation
   }))
   sidebar.appendChild(sHeader)
 
-  const convList = dom.create('div', { className: 'conv-list', id: 'chat-conv-list' })
+  let convList = dom.create('div', { className: 'conv-list', id: 'chat-conv-list' })
   sidebar.appendChild(convList)
   layout.appendChild(sidebar)
 
   // ── Chat Main ──
-  const main = dom.create('div', { className: 'chat-main' })
+  let main = dom.create('div', { className: 'chat-main' })
 
-  const chatHeader = dom.create('div', { className: 'chat-header' })
-  const headerLeft = dom.create('div', { className: 'chat-header-left' })
+  let chatHeader = dom.create('div', { className: 'chat-header' })
+  let headerLeft = dom.create('div', { className: 'chat-header-left' })
   headerLeft.appendChild(dom.create('span', { className: 'chat-agent-icon', text: agent.icon || '⚛' }))
   headerLeft.appendChild(dom.create('span', { className: 'chat-header-title', id: 'active-chat-title', text: 'Select a conversation' }))
   chatHeader.appendChild(headerLeft)
-  const headerBadge = dom.create('span', { className: 'chat-agent-badge', text: agent.name })
+  let headerBadge = dom.create('span', { className: 'chat-agent-badge', text: agent.name })
   chatHeader.appendChild(headerBadge)
   main.appendChild(chatHeader)
 
-  const messages = dom.create('div', { className: 'chat-messages', id: 'chat-msg-area' })
+  let messages = dom.create('div', { className: 'chat-messages', id: 'chat-msg-area' })
   main.appendChild(messages)
 
   // Typing indicator
-  const typingEl = dom.create('div', { className: 'chat-typing', id: 'chat-typing', styles: { display: 'none' } })
+  let typingEl = dom.create('div', { className: 'chat-typing', id: 'chat-typing', styles: { display: 'none' } })
   typingEl.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span> <span class="typing-name">' + agent.name + ' is thinking...</span>'
   main.appendChild(typingEl)
 
-  const inputBar = dom.create('div', { className: 'chat-input-bar', id: 'chat-input-bar', styles: { display: 'none' } })
-  const chatInput = dom.create('input', {
+  let inputBar = dom.create('div', { className: 'chat-input-bar', id: 'chat-input-bar', styles: { display: 'none' } })
+  let chatInput = dom.create('input', {
     id: 'chat-text-input',
     attrs: { type: 'text', placeholder: 'Ask ' + agent.name + ' anything...', autocomplete: 'off' },
     onKeydown: (e) => { if (e.key === 'Enter') sendChatMessage() }
   })
-  const chatSend = dom.create('button', { className: 'chat-send-btn', html: '→', onClick: sendChatMessage })
+  let chatSend = dom.create('button', { className: 'chat-send-btn', html: '→', onClick: sendChatMessage })
   inputBar.appendChild(chatInput)
   inputBar.appendChild(chatSend)
   main.appendChild(inputBar)
@@ -2179,7 +2181,7 @@ function renderChat(container) {
   container.appendChild(layout)
 
   // Show welcome state or load active conversation
-  const active = activeConversation.get()
+  let active = activeConversation.get()
   if (!active) {
     showAxiomWelcome(messages)
   }
@@ -2193,24 +2195,24 @@ function renderChat(container) {
 
 // ── Axiom Welcome Screen ──
 function showAxiomWelcome(container) {
-  const agent = activeAgent.get()
-  const welcome = dom.create('div', { className: 'chat-welcome' })
+  let agent = activeAgent.get()
+  let welcome = dom.create('div', { className: 'chat-welcome' })
 
-  const avatar = dom.create('div', { className: 'welcome-avatar' })
+  let avatar = dom.create('div', { className: 'welcome-avatar' })
   avatar.textContent = agent.icon || '⚛'
   welcome.appendChild(avatar)
 
-  const title = dom.create('h2', { className: 'welcome-title' })
+  let title = dom.create('h2', { className: 'welcome-title' })
   title.textContent = 'Hey, I\'m ' + agent.name + '!'
   welcome.appendChild(title)
 
-  const subtitle = dom.create('p', { className: 'welcome-subtitle' })
+  let subtitle = dom.create('p', { className: 'welcome-subtitle' })
   subtitle.textContent = '181,282 topics across 149 domains — ask me anything.'
   welcome.appendChild(subtitle)
 
   // Suggestion chips
-  const chips = dom.create('div', { className: 'welcome-chips' })
-  const suggestions = [
+  let chips = dom.create('div', { className: 'welcome-chips' })
+  let suggestions = [
     { text: 'What is Lume?', icon: '💎' },
     { text: 'Explain smart contracts', icon: '₿' },
     { text: 'NFL draft strategy', icon: '🏈' },
@@ -2219,7 +2221,7 @@ function showAxiomWelcome(container) {
     { text: 'Explain HIPAA compliance', icon: '⚕️' }
   ]
   for (const s of suggestions) {
-    const chip = dom.create('button', {
+    let chip = dom.create('button', {
       className: 'welcome-chip',
       onClick: () => startConversationWith(s.text)
     })
@@ -2228,7 +2230,7 @@ function showAxiomWelcome(container) {
   }
   welcome.appendChild(chips)
 
-  const footer = dom.create('div', { className: 'welcome-footer' })
+  let footer = dom.create('div', { className: 'welcome-footer' })
   footer.textContent = 'Zero hallucination · Deterministic responses · Trust Layer certified'
   welcome.appendChild(footer)
 
@@ -2237,14 +2239,14 @@ function showAxiomWelcome(container) {
 
 // Start a conversation from a suggestion chip
 async function startConversationWith(text) {
-  const token = authToken.get()
+  let token = authToken.get()
   if (!token) { showAuthOverlay(); return }
   try {
-    const res = await fetch(API_BASE + '/v1/conversations', {
+    let res = await fetch(API_BASE + '/v1/conversations', {
       method: 'POST', headers: getAuthHeaders(),
       body: JSON.stringify({ title: text.slice(0, 50) })
     })
-    const data = await res.json()
+    let data = await res.json()
     if (!data.conversation) return
     activeConversation.set(data.conversation)
     await loadConversations()
@@ -2252,7 +2254,7 @@ async function startConversationWith(text) {
 
     // Send the initial message
     setTimeout(async () => {
-      const el = dom.select('#chat-text-input')
+      let el = dom.select('#chat-text-input')
       if (el) { el.value = text; sendChatMessage() }
     }, 200)
   } catch (e) {
@@ -2261,15 +2263,15 @@ async function startConversationWith(text) {
 }
 
 function populateChatSidebar() {
-  const list = dom.select('#chat-conv-list')
+  let list = dom.select('#chat-conv-list')
   if (!list) return
   dom.clear(list)
 
-  const convs = conversations.get()
-  const active = activeConversation.get()
+  let convs = conversations.get()
+  let active = activeConversation.get()
 
   for (const c of (convs || [])) {
-    const item = dom.create('div', {
+    let item = dom.create('div', {
       className: 'conv-item' + (active && active.id === c.id ? ' active' : ''),
       onClick: () => loadChatConversation(c.id, c.title)
     })
@@ -2283,21 +2285,21 @@ async function loadChatConversation(id, title) {
   activeConversation.set({ id, title })
   dom.set_text('#active-chat-title', title || 'Conversation')
 
-  const inputBar = dom.select('#chat-input-bar')
+  let inputBar = dom.select('#chat-input-bar')
   if (inputBar) inputBar.style.display = 'flex'
 
-  const msgArea = dom.select('#chat-msg-area')
+  let msgArea = dom.select('#chat-msg-area')
   if (!msgArea) return
   dom.clear(msgArea)
 
   try {
-    const res = await fetch(API_BASE + '/v1/conversations/' + id, { headers: getAuthHeaders() })
-    const data = await res.json()
-    const turns = data.turns || []
+    let res = await fetch(API_BASE + '/v1/conversations/' + id, { headers: getAuthHeaders() })
+    let data = await res.json()
+    let turns = data.turns || []
 
     // If no turns yet, show agent greeting
     if (turns.length === 0) {
-      const agent = activeAgent.get()
+      let agent = activeAgent.get()
       appendChatMsg('Hey! I\'m ' + agent.name + '. I have 181,282 topics across 149 knowledge domains ready to go. What can I help you with?', 'agent')
     }
 
@@ -2313,12 +2315,12 @@ async function loadChatConversation(id, title) {
 }
 
 function appendChatMsg(text_content, type, register, ms) {
-  const msgArea = dom.select('#chat-msg-area')
+  let msgArea = dom.select('#chat-msg-area')
   if (!msgArea) return
-  const agent = activeAgent.get()
-  const el = dom.create('div', { className: 'msg ' + type })
+  let agent = activeAgent.get()
+  let el = dom.create('div', { className: 'msg ' + type })
   if (type === 'agent') {
-    const nameTag = '<div class="msg-sender"><span class="msg-agent-dot"></span>' + agent.name + '</div>'
+    let nameTag = '<div class="msg-sender"><span class="msg-agent-dot"></span>' + agent.name + '</div>'
     el.innerHTML = nameTag + (register ? '<div class="register">' + register + '</div>' : '') + '<div class="msg-body">' + escapeHtml(text_content || '') + '</div>' + (ms ? '<div class="meta">' + Number(ms).toFixed(1) + 'ms</div>' : '')
   } else {
     el.textContent = text_content || ''
@@ -2328,20 +2330,20 @@ function appendChatMsg(text_content, type, register, ms) {
 }
 
 function escapeHtml(str) {
-  const d = document.createElement('div')
+  let d = document.createElement('div')
   d.textContent = str
   return d.innerHTML
 }
 
 function showTyping(show) {
-  const el = dom.select('#chat-typing')
+  let el = dom.select('#chat-typing')
   if (el) el.style.display = show ? 'flex' : 'none'
 }
 
 async function sendChatMessage() {
-  const input = dom.select('#chat-text-input')
-  const text_val = input.value.trim()
-  const active = activeConversation.get()
+  let input = dom.select('#chat-text-input')
+  let text_val = input.value.trim()
+  let active = activeConversation.get()
   if (!text_val || !active) return
   input.value = ''
 
@@ -2349,11 +2351,11 @@ async function sendChatMessage() {
   showTyping(true)
 
   try {
-    const res = await fetch(API_BASE + '/v1/conversations/' + active.id + '/speak', {
+    let res = await fetch(API_BASE + '/v1/conversations/' + active.id + '/speak', {
       method: 'POST', headers: getAuthHeaders(),
       body: JSON.stringify({ input: text_val })
     })
-    const data = await res.json()
+    let data = await res.json()
     showTyping(false)
     if (data.error) {
       appendChatMsg('Hmm, I ran into an issue: ' + data.error, 'agent')
@@ -2372,24 +2374,24 @@ async function sendChatMessage() {
 // Knowledge browser + agent catalog
 
 function renderExplore(container) {
-  const page = dom.create('div', { className: 'page' })
+  let page = dom.create('div', { className: 'page' })
 
   // Header
-  const header = dom.create('div', { className: 'explore-header' })
+  let header = dom.create('div', { className: 'explore-header' })
   header.appendChild(dom.create('h2', { text: '📚 Explore Knowledge' }))
   header.appendChild(dom.create('p', { text: '181,282 topics · 149 domains · 42 ecosystem apps · 17 specialty agents' }))
   page.appendChild(header)
 
   // Top-level metrics
-  const metrics = dom.create('div', { className: 'metric-grid', styles: { marginBottom: '1.25rem' } })
-  const metricData = [
+  let metrics = dom.create('div', { className: 'metric-grid', styles: { marginBottom: '1.25rem' } })
+  let metricData = [
     { value: '181,282', label: 'Topics', color: 'var(--cyan)' },
     { value: '149', label: 'Packs', color: 'var(--teal)' },
     { value: '17', label: 'Domains', color: 'var(--purple)' },
     { value: '17', label: 'Agents', color: 'var(--green)' }
   ]
   for (const m of metricData) {
-    const card = dom.create('div', { className: 'metric-card' })
+    let card = dom.create('div', { className: 'metric-card' })
     card.appendChild(dom.create('div', { className: 'metric-value', text: m.value, styles: { color: m.color } }))
     card.appendChild(dom.create('div', { className: 'metric-label', text: m.label }))
     metrics.appendChild(card)
@@ -2397,7 +2399,7 @@ function renderExplore(container) {
   page.appendChild(metrics)
 
   // Search
-  const search = dom.create('input', {
+  let search = dom.create('input', {
     className: 'explore-search',
     attrs: { type: 'text', placeholder: 'Search domains, topics, or agents...' },
     onInput: (e) => filterDomains(e.target.value)
@@ -2406,7 +2408,7 @@ function renderExplore(container) {
 
   // Domain Grid
   page.appendChild(dom.create('div', { className: 'recent-title', text: 'Knowledge Domains', styles: { marginBottom: '0.5rem' } }))
-  const domains = [
+  let domains = [
     { icon: '🔬', name: 'Science & Technology', topics: 18200, packs: 14 },
     { icon: '⚕️', name: 'Medical & Health', topics: 15800, packs: 12 },
     { icon: '⚖️', name: 'Legal & Regulatory', topics: 12400, packs: 10 },
@@ -2426,9 +2428,9 @@ function renderExplore(container) {
     { icon: '🧬', name: 'Life Sciences & Biotech', topics: 5600, packs: 8 }
   ]
 
-  const grid = dom.create('div', { className: 'domain-grid', id: 'domain-grid' })
+  let grid = dom.create('div', { className: 'domain-grid', id: 'domain-grid' })
   for (const d of domains) {
-    const card = dom.create('div', { className: 'domain-card', attrs: { 'data-name': d.name.toLowerCase() } })
+    let card = dom.create('div', { className: 'domain-card', attrs: { 'data-name': d.name.toLowerCase() } })
     card.appendChild(dom.create('div', { className: 'domain-icon', text: d.icon }))
     card.appendChild(dom.create('div', { className: 'domain-name', text: d.name }))
     card.appendChild(dom.create('div', { className: 'domain-stats', text: d.topics.toLocaleString() + ' topics · ' + d.packs + ' packs' }))
@@ -2438,7 +2440,7 @@ function renderExplore(container) {
 
   // Agent Catalog
   page.appendChild(dom.create('div', { className: 'recent-title', text: 'Specialty Agents', styles: { marginTop: '1.5rem', marginBottom: '0.5rem' } }))
-  const agents = [
+  let agents = [
     { name: 'Core Knowledge', desc: 'General-purpose deterministic knowledge', tier: 'FREE', topics: '18,200+' },
     { name: 'Science Agent', desc: 'Physics, chemistry, biology, astronomy', tier: 'FREE', topics: '18,200' },
     { name: 'Medical Agent', desc: 'Clinical, pharmaceutical, anatomy', tier: 'PRO', topics: '15,800' },
@@ -2458,15 +2460,15 @@ function renderExplore(container) {
     { name: 'Maritime Agent', desc: 'Shipping, logistics, port operations', tier: 'PRO', topics: '6,015' }
   ]
 
-  const agentGrid = dom.create('div', { className: 'agent-grid', id: 'agent-grid' })
+  let agentGrid = dom.create('div', { className: 'agent-grid', id: 'agent-grid' })
   for (const a of agents) {
-    const card = dom.create('div', { className: 'agent-card' })
+    let card = dom.create('div', { className: 'agent-card' })
     card.appendChild(dom.create('div', { className: 'agent-name', text: a.name }))
     card.appendChild(dom.create('div', { className: 'agent-desc', text: a.desc }))
-    const meta = dom.create('div', { className: 'agent-meta' })
+    let meta = dom.create('div', { className: 'agent-meta' })
     meta.appendChild(dom.create('span', { text: a.topics + ' topics' }))
     meta.appendChild(dom.create('span', { text: '·' }))
-    const tierColor = a.tier === 'FREE' ? 'var(--green)' : a.tier === 'PRO' ? 'var(--cyan)' : 'var(--purple)'
+    let tierColor = a.tier === 'FREE' ? 'var(--green)' : a.tier === 'PRO' ? 'var(--cyan)' : 'var(--purple)'
     meta.appendChild(dom.create('span', { text: a.tier, styles: { color: tierColor } }))
     card.appendChild(meta)
     agentGrid.appendChild(card)
@@ -2477,15 +2479,15 @@ function renderExplore(container) {
 }
 
 function filterDomains(query) {
-  const q = query.toLowerCase()
-  const cards = dom.select_all('#domain-grid .domain-card')
+  let q = query.toLowerCase()
+  let cards = dom.select_all('#domain-grid .domain-card')
   for (const c of cards) {
-    const name = c.getAttribute('data-name') || ''
+    let name = c.getAttribute('data-name') || ''
     c.style.display = name.includes(q) ? '' : 'none'
   }
-  const agents = dom.select_all('#agent-grid .agent-card')
+  let agents = dom.select_all('#agent-grid .agent-card')
   for (const a of agents) {
-    const text_content = a.textContent.toLowerCase()
+    let text_content = a.textContent.toLowerCase()
     a.style.display = text_content.includes(q) ? '' : 'none'
   }
 }
@@ -2495,20 +2497,20 @@ function filterDomains(query) {
 // Consolidated system monitoring — tabbed interface
 
 function renderTrustCenter(container) {
-  const page = dom.create('div', { className: 'page' })
+  let page = dom.create('div', { className: 'page' })
 
   // Header
-  const header = dom.create('div', { styles: { marginBottom: '1rem' } })
+  let header = dom.create('div', { styles: { marginBottom: '1rem' } })
   header.appendChild(dom.create('h2', { text: '⛊ Trust Center', styles: { fontSize: '1.2rem', fontWeight: '700' } }))
   header.appendChild(dom.create('p', { text: 'System monitoring, safety compliance, and trust verification', styles: { fontSize: '0.75rem', color: 'var(--t2)' } }))
   page.appendChild(header)
 
   // Tab bar
-  const tabs = dom.create('div', { className: 'tc-tabs' })
-  const tabNames = ['Overview', 'Cells & Signals', 'Pipeline', 'Trust & Safety']
-  const tabIds = ['tc-overview', 'tc-cells', 'tc-pipeline', 'tc-trust']
+  let tabs = dom.create('div', { className: 'tc-tabs' })
+  let tabNames = ['Overview', 'Cells & Signals', 'Pipeline', 'Trust & Safety']
+  let tabIds = ['tc-overview', 'tc-cells', 'tc-pipeline', 'tc-trust']
   for (let i = 0; i < tabNames.length; i++) {
-    const tab = dom.create('button', {
+    let tab = dom.create('button', {
       className: 'tc-tab' + (i === 0 ? ' active' : ''),
       text: tabNames[i],
       attrs: { 'data-panel': tabIds[i] },
@@ -2519,9 +2521,9 @@ function renderTrustCenter(container) {
   page.appendChild(tabs)
 
   // ── Tab 1: Overview ──
-  const p1 = dom.create('div', { className: 'tc-panel active', id: 'tc-overview' })
-  const metrics = dom.create('div', { className: 'metric-grid' })
-  const mData = [
+  let p1 = dom.create('div', { className: 'tc-panel active', id: 'tc-overview' })
+  let metrics = dom.create('div', { className: 'metric-grid' })
+  let mData = [
     { value: '181,282', label: 'Knowledge Topics', color: 'var(--cyan)' },
     { value: '11', label: 'Active Agents', color: 'var(--teal)' },
     { value: '0', label: 'Violations', color: 'var(--green)' },
@@ -2530,7 +2532,7 @@ function renderTrustCenter(container) {
     { value: '0ms', label: 'Override Latency', color: 'var(--teal)' }
   ]
   for (const m of mData) {
-    const card = dom.create('div', { className: 'metric-card' })
+    let card = dom.create('div', { className: 'metric-card' })
     card.appendChild(dom.create('div', { className: 'metric-value', text: m.value, styles: { color: m.color } }))
     card.appendChild(dom.create('div', { className: 'metric-label', text: m.label }))
     metrics.appendChild(card)
@@ -2538,14 +2540,14 @@ function renderTrustCenter(container) {
   p1.appendChild(metrics)
 
   // Activity feed
-  const feedCard = dom.create('div', { className: 'card', styles: { marginTop: '1rem' } })
-  const feedHeader = dom.create('div', { className: 'card-header' })
+  let feedCard = dom.create('div', { className: 'card', styles: { marginTop: '1rem' } })
+  let feedHeader = dom.create('div', { className: 'card-header' })
   feedHeader.appendChild(dom.create('span', { className: 'card-title', text: '⟡ Activity Feed' }))
   feedHeader.appendChild(dom.create('span', { className: 'card-badge', text: 'live' }))
   feedCard.appendChild(feedHeader)
 
-  const feed = dom.create('div', { id: 'tc-activity-feed' })
-  const feedItems = [
+  let feed = dom.create('div', { id: 'tc-activity-feed' })
+  let feedItems = [
     { t: '00:00.1', msg: 'BOOT_COMPLETE — All 7 phases passed', color: 'var(--green)' },
     { t: '00:00.2', msg: 'Cell-0: Homeostasis — load balancing active', color: 'var(--cyan)' },
     { t: '00:00.3', msg: 'Cell-1: Axiom Kernel — 181,282 topics indexed across 149 domains', color: 'var(--teal)' },
@@ -2554,7 +2556,7 @@ function renderTrustCenter(container) {
     { t: '00:00.6', msg: 'LDIR: 32 rules enforced — 0 violations', color: 'var(--green)' }
   ]
   for (const f of feedItems) {
-    const item = dom.create('div', { className: 'feed-item' })
+    let item = dom.create('div', { className: 'feed-item' })
     item.appendChild(dom.create('div', { className: 'feed-dot', styles: { background: f.color } }))
     item.appendChild(dom.create('span', { className: 'feed-time', text: f.t }))
     item.appendChild(dom.create('span', { className: 'feed-msg', text: f.msg }))
@@ -2565,14 +2567,14 @@ function renderTrustCenter(container) {
   page.appendChild(p1)
 
   // ── Tab 2: Cells & Signals ──
-  const p2 = dom.create('div', { className: 'tc-panel', id: 'tc-cells' })
-  const cellCard = dom.create('div', { className: 'card' })
-  const cellH = dom.create('div', { className: 'card-header' })
+  let p2 = dom.create('div', { className: 'tc-panel', id: 'tc-cells' })
+  let cellCard = dom.create('div', { className: 'card' })
+  let cellH = dom.create('div', { className: 'card-header' })
   cellH.appendChild(dom.create('span', { className: 'card-title', text: '◉ Cell Manager' }))
   cellH.appendChild(dom.create('span', { className: 'card-badge', text: 'SOR v1.0' }))
   cellCard.appendChild(cellH)
 
-  const cells = [
+  let cells = [
     { name: 'Cell-0: Homeostasis', type: 'system', status: 'active', mem: '12.4 MB' },
     { name: 'Cell-1: Axiom Kernel', type: 'kernel', status: 'active', mem: '64.2 MB' },
     { name: 'Cell-2: Intent Router', type: 'kernel', status: 'active', mem: '8.1 MB' },
@@ -2582,10 +2584,10 @@ function renderTrustCenter(container) {
     { name: 'Cell-6: DPCL Bridge', type: 'agent', status: 'idle', mem: '1.2 MB' },
     { name: 'Cell-7: Iris Observer', type: 'agent', status: 'active', mem: '3.4 MB' }
   ]
-  const cellList = dom.create('div', { styles: { display: 'flex', flexDirection: 'column', gap: '0.3rem' } })
+  let cellList = dom.create('div', { styles: { display: 'flex', flexDirection: 'column', gap: '0.3rem' } })
   for (const c of cells) {
-    const row = dom.create('div', { className: 'cell-node', styles: { width: '100%' } })
-    const dotColor = c.type === 'system' ? 'var(--cyan)' : c.type === 'kernel' ? 'var(--teal)' : 'var(--purple)'
+    let row = dom.create('div', { className: 'cell-node', styles: { width: '100%' } })
+    let dotColor = c.type === 'system' ? 'var(--cyan)' : c.type === 'kernel' ? 'var(--teal)' : 'var(--purple)'
     row.appendChild(dom.create('div', { className: 'cell-dot', styles: { background: dotColor } }))
     row.appendChild(dom.create('span', { text: c.name, styles: { flex: '1' } }))
     row.appendChild(dom.create('span', { text: c.status, styles: { fontSize: '0.5rem', color: c.status === 'active' ? 'var(--green)' : 'var(--t3)', textTransform: 'uppercase' } }))
@@ -2596,24 +2598,24 @@ function renderTrustCenter(container) {
   p2.appendChild(cellCard)
 
   // Homeostasis
-  const homeCard = dom.create('div', { className: 'card', styles: { marginTop: '0.75rem' } })
-  const homeH = dom.create('div', { className: 'card-header' })
+  let homeCard = dom.create('div', { className: 'card', styles: { marginTop: '0.75rem' } })
+  let homeH = dom.create('div', { className: 'card-header' })
   homeH.appendChild(dom.create('span', { className: 'card-title', text: '⟐ Homeostasis' }))
   homeH.appendChild(dom.create('span', { className: 'card-badge', text: 'balanced' }))
   homeCard.appendChild(homeH)
 
-  const gauges = [
+  let gauges = [
     { label: 'CPU', value: 23, color: 'var(--cyan)' },
     { label: 'Memory', value: 38, color: 'var(--teal)' },
     { label: 'Queue', value: 12, color: 'var(--purple)' },
     { label: 'Health', value: 100, color: 'var(--green)' }
   ]
-  const gaugeGrid = dom.create('div', { styles: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.75rem' } })
+  let gaugeGrid = dom.create('div', { styles: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.75rem' } })
   for (const g of gauges) {
-    const wrap = dom.create('div', { styles: { textAlign: 'center' } })
-    const circ = 2 * Math.PI * 32
-    const off = circ - (circ * g.value / 100)
-    const ring = dom.create('div', { className: 'gauge-ring', styles: { margin: '0 auto' } })
+    let wrap = dom.create('div', { styles: { textAlign: 'center' } })
+    let circ = 2 * Math.PI * 32
+    let off = circ - (circ * g.value / 100)
+    let ring = dom.create('div', { className: 'gauge-ring', styles: { margin: '0 auto' } })
     ring.innerHTML = '<svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--t4)" stroke-width="4"/><circle cx="40" cy="40" r="32" fill="none" stroke="' + g.color + '" stroke-width="4" stroke-dasharray="' + circ + '" stroke-dashoffset="' + off + '" stroke-linecap="round" style="transition:stroke-dashoffset 1s"/></svg><span class="gauge-val">' + g.value + '%</span>'
     wrap.appendChild(ring)
     wrap.appendChild(dom.create('div', { text: g.label, styles: { fontSize: '0.55rem', color: 'var(--t3)', marginTop: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.08em' } }))
@@ -2624,14 +2626,14 @@ function renderTrustCenter(container) {
   page.appendChild(p2)
 
   // ── Tab 3: Pipeline ──
-  const p3 = dom.create('div', { className: 'tc-panel', id: 'tc-pipeline' })
-  const pipeCard = dom.create('div', { className: 'card' })
-  const pipeH = dom.create('div', { className: 'card-header' })
+  let p3 = dom.create('div', { className: 'tc-panel', id: 'tc-pipeline' })
+  let pipeCard = dom.create('div', { className: 'card' })
+  let pipeH = dom.create('div', { className: 'card-header' })
   pipeH.appendChild(dom.create('span', { className: 'card-title', text: '⬡ Axiom 42-Module Pipeline' }))
   pipeH.appendChild(dom.create('span', { className: 'card-badge', text: '6 layers' }))
   pipeCard.appendChild(pipeH)
 
-  const layers = [
+  let layers = [
     { name: 'L1: Intake', modules: 'Intent · Parse · Classify · Validate · Sanitize · Route · Auth' },
     { name: 'L2: Knowledge', modules: 'Spine · Pack · Topic · Source · Citation · Weight · Rank' },
     { name: 'L3: Reasoning', modules: 'Tree · Branch · Leaf · Prune · Score · Merge · Output' },
@@ -2640,7 +2642,7 @@ function renderTrustCenter(container) {
     { name: 'L6: Surface', modules: 'Render · Deliver · Cache · Log · Replay · Iris · Health' }
   ]
   for (const l of layers) {
-    const layerWrap = dom.create('div', { styles: { marginBottom: '0.75rem' } })
+    let layerWrap = dom.create('div', { styles: { marginBottom: '0.75rem' } })
     layerWrap.appendChild(dom.create('div', { text: l.name, styles: { fontSize: '0.7rem', fontWeight: '600', marginBottom: '0.25rem', color: 'var(--cyan)' } }))
     layerWrap.appendChild(dom.create('div', { text: l.modules, styles: { fontSize: '0.6rem', fontFamily: 'var(--mono)', color: 'var(--t2)', lineHeight: '1.6' } }))
     pipeCard.appendChild(layerWrap)
@@ -2649,14 +2651,14 @@ function renderTrustCenter(container) {
   page.appendChild(p3)
 
   // ── Tab 4: Trust & Safety ──
-  const p4 = dom.create('div', { className: 'tc-panel', id: 'tc-trust' })
-  const trustCard = dom.create('div', { className: 'card' })
-  const trustH = dom.create('div', { className: 'card-header' })
+  let p4 = dom.create('div', { className: 'tc-panel', id: 'tc-trust' })
+  let trustCard = dom.create('div', { className: 'card' })
+  let trustH = dom.create('div', { className: 'card-header' })
   trustH.appendChild(dom.create('span', { className: 'card-title', text: '⛊ Trust & Safety' }))
   trustH.appendChild(dom.create('span', { className: 'card-badge', text: 'compliant' }))
   trustCard.appendChild(trustH)
 
-  const trustItems = [
+  let trustItems = [
     { label: 'Certificate Chain', value: '6 certificates · 0 revocations', ok: true },
     { label: 'LDIR Rulebook', value: '32 rules · 4 tiers enforced', ok: true },
     { label: 'Invariant Violations', value: '0 — all predicates satisfied', ok: true },
@@ -2665,9 +2667,9 @@ function renderTrustCenter(container) {
     { label: 'TrustShield Status', value: 'Connected — Ed25519 valid', ok: true }
   ]
   for (const t of trustItems) {
-    const row = dom.create('div', { styles: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--t4)' } })
+    let row = dom.create('div', { styles: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--t4)' } })
     row.appendChild(dom.create('span', { text: t.label, styles: { fontSize: '0.72rem', color: 'var(--t2)' } }))
-    const val = dom.create('div', { styles: { display: 'flex', alignItems: 'center', gap: '0.4rem' } })
+    let val = dom.create('div', { styles: { display: 'flex', alignItems: 'center', gap: '0.4rem' } })
     val.appendChild(dom.create('span', { text: t.value, styles: { fontSize: '0.6rem', fontFamily: 'var(--mono)', color: 'var(--t1)' } }))
     val.appendChild(dom.create('span', { text: '✓', styles: { color: 'var(--green)', fontSize: '0.7rem' } }))
     row.appendChild(val)
@@ -2680,16 +2682,16 @@ function renderTrustCenter(container) {
 
   // Live feed ticker
   let fidx = 0
-  const liveMsgs = [
+  let liveMsgs = [
     'Cell-1: Intent canonicalized', 'Signal: HEALTH_CHECK → Cell-0 → Cell-7',
     'Override Engine: standby', 'Certificate: chain verified', 'Homeostasis: nominal',
     'Iris: observation cert issued', 'Signal Bus: 0 queued, 0 dropped'
   ]
-  const fid = setInterval(() => {
-    const feedEl = dom.select('#tc-activity-feed')
+  let fid = setInterval(() => {
+    let feedEl = dom.select('#tc-activity-feed')
     if (!feedEl || currentPage.get() !== 'system') { clearInterval(fid); return }
-    const newItem = dom.create('div', { className: 'feed-item' })
-    const tau = text.pad_start(String(globalTau.get()), 7, '0')
+    let newItem = dom.create('div', { className: 'feed-item' })
+    let tau = text.pad_start(String(globalTau.get()), 7, '0')
     newItem.appendChild(dom.create('div', { className: 'feed-dot', styles: { background: 'var(--cyan)' } }))
     newItem.appendChild(dom.create('span', { className: 'feed-time', text: tau }))
     newItem.appendChild(dom.create('span', { className: 'feed-msg', text: liveMsgs[fidx % liveMsgs.length] }))
@@ -2713,19 +2715,19 @@ function switchTCTab(panelId) {
 // Profile, account, preferences, and system info
 
 function renderSettings(container) {
-  const page = dom.create('div', { className: 'page' })
+  let page = dom.create('div', { className: 'page' })
 
   // Profile Card
-  const profileCard = dom.create('div', { className: 'profile-card' })
-  const user = currentUser.get()
-  const profile = userProfile.get()
-  const name = profile?.name || user?.name || user?.email || 'Unknown'
-  const email = profile?.email || user?.email || ''
-  const tier = profile?.tier || user?.tier || 'FREE'
-  const initial = (name[0] || '?').toUpperCase()
-  const avatar = profile?.avatarUrl || null
+  let profileCard = dom.create('div', { className: 'profile-card' })
+  let user = currentUser.get()
+  let profile = userProfile.get()
+  let name = profile?.name || user?.name || user?.email || 'Unknown'
+  let email = profile?.email || user?.email || ''
+  let tier = profile?.tier || user?.tier || 'FREE'
+  let initial = (name[0] || '?').toUpperCase()
+  let avatar = profile?.avatarUrl || null
 
-  const avatarEl = dom.create('div', {
+  let avatarEl = dom.create('div', {
     className: 'profile-avatar-lg', id: 'settings-avatar',
     text: avatar ? '' : initial,
     onClick: () => { dom.select('#avatar-file-input').click() }
@@ -2737,10 +2739,10 @@ function renderSettings(container) {
   }
   profileCard.appendChild(avatarEl)
 
-  const details = dom.create('div', { className: 'profile-details' })
+  let details = dom.create('div', { className: 'profile-details' })
   details.appendChild(dom.create('h3', { text: name }))
   details.appendChild(dom.create('div', { className: 'email', text: email }))
-  const tierBadge = dom.create('div', { styles: {
+  let tierBadge = dom.create('div', { styles: {
     display: 'inline-block', marginTop: '0.3rem', fontSize: '0.5rem', fontFamily: 'var(--mono)',
     padding: '0.15rem 0.5rem', borderRadius: '999px', background: 'rgba(6,182,212,0.08)',
     color: 'var(--cyan)', border: '1px solid rgba(6,182,212,0.15)', textTransform: 'uppercase', letterSpacing: '0.06em'
@@ -2750,18 +2752,18 @@ function renderSettings(container) {
   page.appendChild(profileCard)
 
   // Preferences Section
-  const prefsSection = dom.create('div', { className: 'settings-section' })
+  let prefsSection = dom.create('div', { className: 'settings-section' })
   prefsSection.appendChild(dom.create('div', { className: 'settings-label', text: 'Preferences' }))
 
   // Theme toggle row
-  const themeRow = dom.create('div', { className: 'settings-row' })
+  let themeRow = dom.create('div', { className: 'settings-row' })
   themeRow.appendChild(dom.create('span', { className: 'settings-row-label', text: 'Theme' }))
-  const themeToggle = dom.create('button', {
+  let themeToggle = dom.create('button', {
     text: theme.get() === 'dark' ? '☀ Switch to Light' : '☾ Switch to Dark',
     styles: { background: 'var(--card)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '0.35rem 0.8rem', color: 'var(--t2)', cursor: 'pointer', fontSize: '0.7rem', fontFamily: 'var(--sans)' },
     onClick: () => {
       toggleTheme()
-      const btn = dom.select('#theme-btn')
+      let btn = dom.select('#theme-btn')
       if (btn) btn.innerHTML = theme.get() === 'dark' ? '☀' : '☾'
       renderPage()
     }
@@ -2770,18 +2772,18 @@ function renderSettings(container) {
   prefsSection.appendChild(themeRow)
 
   // SMS Opt-In row
-  const smsRow = dom.create('div', { styles: { padding: '0.75rem 0', borderBottom: '1px solid var(--t4)' } })
+  let smsRow = dom.create('div', { styles: { padding: '0.75rem 0', borderBottom: '1px solid var(--t4)' } })
   smsRow.appendChild(dom.create('span', { className: 'settings-row-label', text: 'SMS Notifications', styles: { display: 'block', marginBottom: '0.4rem' } }))
 
-  const smsPhoneRow = dom.create('div', { styles: { display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.4rem' } })
-  const smsInput = dom.create('input', {
+  let smsPhoneRow = dom.create('div', { styles: { display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.4rem' } })
+  let smsInput = dom.create('input', {
     id: 'sms-phone-input',
     attrs: { type: 'tel', placeholder: '+1 (555) 555-5555', autocomplete: 'tel' },
     styles: { flex: '1', background: 'var(--card)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '0.45rem 0.6rem', color: 'var(--t1)', fontSize: '0.72rem', fontFamily: 'var(--sans)', outline: 'none', maxWidth: '220px' }
   })
   smsPhoneRow.appendChild(smsInput)
 
-  const smsSaveBtn = dom.create('button', {
+  let smsSaveBtn = dom.create('button', {
     text: 'Save',
     styles: { background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.15)', borderRadius: '8px', padding: '0.4rem 0.75rem', color: 'var(--cyan)', cursor: 'pointer', fontSize: '0.65rem', fontFamily: 'var(--sans)', fontWeight: '600' },
     onClick: () => { handleSmsOptIn() }
@@ -2789,8 +2791,8 @@ function renderSettings(container) {
   smsPhoneRow.appendChild(smsSaveBtn)
   smsRow.appendChild(smsPhoneRow)
 
-  const smsCheckRow = dom.create('label', { styles: { display: 'flex', alignItems: 'flex-start', gap: '0.4rem', cursor: 'pointer' } })
-  const smsCheck = dom.create('input', {
+  let smsCheckRow = dom.create('label', { styles: { display: 'flex', alignItems: 'flex-start', gap: '0.4rem', cursor: 'pointer' } })
+  let smsCheck = dom.create('input', {
     id: 'sms-opt-in-check',
     attrs: { type: 'checkbox' },
     styles: { marginTop: '0.15rem', accentColor: 'var(--cyan)' }
@@ -2804,14 +2806,14 @@ function renderSettings(container) {
   prefsSection.appendChild(smsRow)
 
   // Email notifications toggle
-  const emailRow = dom.create('div', { className: 'settings-row' })
+  let emailRow = dom.create('div', { className: 'settings-row' })
   emailRow.appendChild(dom.create('span', { className: 'settings-row-label', text: 'Email Notifications' }))
-  const emailToggle = dom.create('button', {
+  let emailToggle = dom.create('button', {
     id: 'email-notif-toggle',
     text: 'Enabled',
     styles: { background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '8px', padding: '0.35rem 0.8rem', color: 'var(--green)', cursor: 'pointer', fontSize: '0.65rem', fontFamily: 'var(--sans)', fontWeight: '600' },
     onClick: () => {
-      const btn = dom.select('#email-notif-toggle')
+      let btn = dom.select('#email-notif-toggle')
       if (btn.textContent === 'Enabled') {
         btn.textContent = 'Disabled'
         btn.style.background = 'var(--card)'
@@ -2830,28 +2832,28 @@ function renderSettings(container) {
   page.appendChild(prefsSection)
 
   // Billing Section
-  const billingSection = dom.create('div', { className: 'settings-section' })
+  let billingSection = dom.create('div', { className: 'settings-section' })
   billingSection.appendChild(dom.create('div', { className: 'settings-label', text: 'Plan & Billing' }))
 
-  const tierGrid = dom.create('div', { className: 'tier-grid' })
-  const tiers = [
+  let tierGrid = dom.create('div', { className: 'tier-grid' })
+  let tiers = [
     { name: 'Free', price: '$0', interval: 'forever', features: ['100 queries/day', '5 conversations', 'Core Knowledge Agent', 'Community support'], id: 'free' },
     { name: 'Professional', price: '$29', interval: '/month', features: ['Unlimited queries', 'Unlimited conversations', 'All 11 specialty agents', 'Image generation', 'Priority support', 'API access'], id: 'professional' },
     { name: 'Enterprise', price: '$99', interval: '/month', features: ['Everything in Pro', 'Custom agents', 'Dedicated capacity', 'SLA guarantee', 'SSO integration', 'Audit logs', 'Phone support'], id: 'enterprise' }
   ]
   for (const t of tiers) {
-    const card = dom.create('div', { className: 'tier-card' + (t.id === tier.toLowerCase() ? ' current' : '') })
+    let card = dom.create('div', { className: 'tier-card' + (t.id === tier.toLowerCase() ? ' current' : '') })
     card.appendChild(dom.create('div', { className: 'tier-name', text: t.name }))
     card.appendChild(dom.create('div', { className: 'tier-price', text: t.price }))
     card.appendChild(dom.create('div', { className: 'tier-price-sub', text: t.interval }))
-    const featureList = dom.create('ul', { className: 'tier-features' })
+    let featureList = dom.create('ul', { className: 'tier-features' })
     for (const f of t.features) {
       featureList.appendChild(dom.create('li', { text: f }))
     }
     card.appendChild(featureList)
 
-    const isCurrent = t.id === tier.toLowerCase()
-    const upgradeBtn = dom.create('button', {
+    let isCurrent = t.id === tier.toLowerCase()
+    let upgradeBtn = dom.create('button', {
       className: 'tier-upgrade-btn',
       text: isCurrent ? 'Current Plan' : 'Upgrade',
       attrs: isCurrent ? { disabled: 'true' } : {},
@@ -2864,14 +2866,14 @@ function renderSettings(container) {
   page.appendChild(billingSection)
 
   // Hallmarks Section
-  const hallmarkSection = dom.create('div', { className: 'settings-section' })
+  let hallmarkSection = dom.create('div', { className: 'settings-section' })
   hallmarkSection.appendChild(dom.create('div', { className: 'settings-label', text: 'Trust Layer Hallmarks' }))
 
-  const cortexHallmark = generateHallmark('Lume Cortex v1.0', 'TrustShield.tech')
-  const axiomHallmark = generateHallmark('Axiom Cognitive Kernel', 'DarkWave Studios LLC')
-  const trustHallmark = generateHallmark('Trust Layer Certificate', 'TrustShield.tech')
+  let cortexHallmark = generateHallmark('Lume Cortex v1.0', 'TrustShield.tech')
+  let axiomHallmark = generateHallmark('Axiom Cognitive Kernel', 'DarkWave Studios LLC')
+  let trustHallmark = generateHallmark('Trust Layer Certificate', 'TrustShield.tech')
 
-  const hallmarkList = dom.create('div', { styles: { display: 'flex', flexDirection: 'column', gap: '0.5rem' } })
+  let hallmarkList = dom.create('div', { styles: { display: 'flex', flexDirection: 'column', gap: '0.5rem' } })
   hallmarkList.appendChild(renderHallmarkBadge(cortexHallmark))
   hallmarkList.appendChild(renderHallmarkBadge(axiomHallmark))
   hallmarkList.appendChild(renderHallmarkBadge(trustHallmark))
@@ -2879,10 +2881,10 @@ function renderSettings(container) {
   page.appendChild(hallmarkSection)
 
   // System Info Section
-  const sysSection = dom.create('div', { className: 'settings-section' })
+  let sysSection = dom.create('div', { className: 'settings-section' })
   sysSection.appendChild(dom.create('div', { className: 'settings-label', text: 'System Information' }))
 
-  const sysInfo = [
+  let sysInfo = [
     { label: 'Product', value: 'Lume Cortex v1.0' },
     { label: 'Domain', value: 'lume-cortex.com' },
     { label: 'Runtime', value: 'Lume v1.1.0 · Cortex Edition' },
@@ -2895,7 +2897,7 @@ function renderSettings(container) {
     { label: 'DOI', value: '10.5281/zenodo.19430898' }
   ]
   for (const s of sysInfo) {
-    const row = dom.create('div', { className: 'settings-row' })
+    let row = dom.create('div', { className: 'settings-row' })
     row.appendChild(dom.create('span', { className: 'settings-row-label', text: s.label }))
     row.appendChild(dom.create('span', { className: 'settings-row-value', text: s.value }))
     sysSection.appendChild(row)
@@ -2903,7 +2905,7 @@ function renderSettings(container) {
   page.appendChild(sysSection)
 
   // About Section
-  const aboutSection = dom.create('div', { className: 'settings-section' })
+  let aboutSection = dom.create('div', { className: 'settings-section' })
   aboutSection.appendChild(dom.create('div', { className: 'settings-label', text: 'About' }))
   aboutSection.appendChild(dom.create('div', {
     styles: { fontSize: '0.72rem', color: 'var(--t2)', lineHeight: '1.7' },
@@ -2917,7 +2919,7 @@ function renderSettings(container) {
 // ── Stripe Upgrade Handler ──
 async function handleUpgrade(targetTier) {
   try {
-    const res = await fetch(API_BASE + '/v1/billing/checkout', {
+    let res = await fetch(API_BASE + '/v1/billing/checkout', {
       method: 'POST', headers: getAuthHeaders(),
       body: JSON.stringify({
         tier: targetTier,
@@ -2925,16 +2927,16 @@ async function handleUpgrade(targetTier) {
         cancel_url: window.location.origin + '/#settings'
       })
     })
-    const data = await res.json()
+    let data = await res.json()
     if (data.url) window.location.href = data.url
   } catch (e) { console.log('Upgrade error:', e.message) }
 }
 
 // ── SMS Opt-In Handler (A2P 10DLC Compliant) ──
 async function handleSmsOptIn() {
-  const check = dom.select('#sms-opt-in-check')
-  const phoneInput = dom.select('#sms-phone-input')
-  const phone = phoneInput ? phoneInput.value.trim() : ''
+  let check = dom.select('#sms-opt-in-check')
+  let phoneInput = dom.select('#sms-phone-input')
+  let phone = phoneInput ? phoneInput.value.trim() : ''
 
   if (!check || !check.checked) {
     alert('Please check the consent box to opt in to SMS notifications.')
@@ -2945,11 +2947,11 @@ async function handleSmsOptIn() {
     return
   }
 
-  const user = currentUser.get()
-  const profile = userProfile.get()
+  let user = currentUser.get()
+  let profile = userProfile.get()
 
   try {
-    const res = await fetch(API_BASE + '/api/sms/optin', {
+    let res = await fetch(API_BASE + '/api/sms/optin', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: profile?.name || user?.name || 'User',
@@ -2960,7 +2962,7 @@ async function handleSmsOptIn() {
         consentSource: 'lume-cortex-settings'
       })
     })
-    const data = await res.json()
+    let data = await res.json()
     if (data.success) {
       alert('SMS notifications enabled! Check your phone for a confirmation text.')
     } else {
@@ -2978,8 +2980,8 @@ async function handleSmsOptIn() {
 // Accessible via triple-click shield in footer + PIN 0424
 
 // ── Admin PIN Gate ──
-const adminClickCount = 0
-const adminClickTimer = null
+let adminClickCount = 0
+let adminClickTimer = null
 
 function handleShieldClick() {
   adminClickCount = adminClickCount + 1
@@ -2992,7 +2994,7 @@ function handleShieldClick() {
     clearTimeout(adminClickTimer)
 
     // Check JWT first
-    const token = authToken.get()
+    let token = authToken.get()
     if (!token) {
       return
     }
@@ -3002,16 +3004,16 @@ function handleShieldClick() {
 }
 
 function showPinModal() {
-  const existing = dom.select('#pin-modal')
+  let existing = dom.select('#pin-modal')
   if (existing) existing.remove()
 
-  const overlay = dom.create('div', { id: 'pin-modal', className: 'pin-overlay' })
+  let overlay = dom.create('div', { id: 'pin-modal', className: 'pin-overlay' })
   overlay.innerHTML = '<div class="pin-card"><div class="pin-header"><div class="pin-shield">🛡</div><div class="pin-title">COMMAND CENTER</div><div class="pin-sub">Enter admin PIN to continue</div></div><div class="pin-input-wrap"><input type="password" id="pin-input" class="pin-input" maxlength="4" placeholder="····" autocomplete="off" inputmode="numeric"></div><div class="pin-actions"><button class="pin-cancel" onclick="closePinModal()">Cancel</button><button class="pin-submit" onclick="submitPin()">Unlock</button></div></div>'
 
   document.body.appendChild(overlay)
 
   setTimeout(() => {
-    const input = dom.select('#pin-input')
+    let input = dom.select('#pin-input')
     if (input) {
       input.focus()
       input.addEventListener('keydown', (e) => {
@@ -3023,14 +3025,14 @@ function showPinModal() {
 }
 
 function closePinModal() {
-  const modal = dom.select('#pin-modal')
+  let modal = dom.select('#pin-modal')
   if (modal) modal.remove()
 }
 
 function submitPin() {
-  const input = dom.select('#pin-input')
+  let input = dom.select('#pin-input')
   if (!input) return
-  const pin = input.value
+  let pin = input.value
 
   if (pin === '0424') {
     closePinModal()
@@ -3038,7 +3040,7 @@ function submitPin() {
     window.sessionStorage.setItem('cortex-admin', 'true')
     navigateTo('admin')
   } else {
-    const card = document.querySelector('.pin-card')
+    let card = document.querySelector('.pin-card')
     if (card) {
       card.classList.add('pin-shake')
       setTimeout(() => { card.classList.remove('pin-shake') }, 500)
@@ -3061,15 +3063,15 @@ function renderAdmin(container) {
     return
   }
 
-  const page = dom.create('div', { className: 'page admin-page' })
+  let page = dom.create('div', { className: 'page admin-page' })
 
   // Admin Header
-  const header = dom.create('div', { className: 'admin-header' })
-  const headerLeft = dom.create('div', { styles: { display: 'flex', alignItems: 'center', gap: '0.5rem' } })
+  let header = dom.create('div', { className: 'admin-header' })
+  let headerLeft = dom.create('div', { styles: { display: 'flex', alignItems: 'center', gap: '0.5rem' } })
   headerLeft.appendChild(dom.create('span', { text: '🛡', styles: { fontSize: '1.2rem' } }))
   headerLeft.appendChild(dom.create('span', { className: 'admin-title', text: 'COMMAND CENTER' }))
   header.appendChild(headerLeft)
-  const exitBtn = dom.create('button', {
+  let exitBtn = dom.create('button', {
     text: '✕ Exit',
     className: 'admin-exit',
     onClick: exitAdmin
@@ -3078,15 +3080,15 @@ function renderAdmin(container) {
   page.appendChild(header)
 
   // Tab Bar
-  const tabs = dom.create('div', { className: 'admin-tabs' })
-  const tabData = [
+  let tabs = dom.create('div', { className: 'admin-tabs' })
+  let tabData = [
     { id: 'fleet', label: 'Fleet' },
     { id: 'health', label: 'Health' },
     { id: 'analytics', label: 'Analytics' },
     { id: 'actions', label: 'Actions' }
   ]
   for (const t of tabData) {
-    const tab = dom.create('button', {
+    let tab = dom.create('button', {
       className: 'admin-tab' + (t.id === 'fleet' ? ' active' : ''),
       text: t.label,
       attrs: { 'data-tab': t.id },
@@ -3097,14 +3099,14 @@ function renderAdmin(container) {
   page.appendChild(tabs)
 
   // Panels Container
-  const panels = dom.create('div', { id: 'admin-panels' })
+  let panels = dom.create('div', { id: 'admin-panels' })
 
   // ── FLEET PANEL ──
-  const fleetPanel = dom.create('div', { className: 'admin-panel active', id: 'panel-fleet' })
+  let fleetPanel = dom.create('div', { className: 'admin-panel active', id: 'panel-fleet' })
   fleetPanel.appendChild(dom.create('div', { className: 'admin-section-title', text: 'Ecosystem Fleet · 42 Apps' }))
 
-  const fleetGrid = dom.create('div', { className: 'fleet-grid' })
-  const fleetApps = [
+  let fleetGrid = dom.create('div', { className: 'fleet-grid' })
+  let fleetApps = [
     // ── Core Infrastructure (6) ──
     { name: 'Lume', url: 'lume-lang.com', cat: 'Core' },
     { name: 'Lume Cortex', url: 'lume-cortex.onrender.com', cat: 'Core' },
@@ -3162,12 +3164,12 @@ function renderAdmin(container) {
   ]
 
   for (const app of fleetApps) {
-    const card = dom.create('div', { className: 'fleet-card' })
-    const dot = dom.create('div', { className: 'fleet-dot pending', id: 'dot-' + app.url.replace(/\./g, '-') })
-    const info = dom.create('div', { className: 'fleet-info' })
+    let card = dom.create('div', { className: 'fleet-card' })
+    let dot = dom.create('div', { className: 'fleet-dot pending', id: 'dot-' + app.url.replace(/\./g, '-') })
+    let info = dom.create('div', { className: 'fleet-info' })
     info.appendChild(dom.create('div', { className: 'fleet-name', text: app.name }))
     info.appendChild(dom.create('div', { className: 'fleet-url', text: app.url }))
-    const badge = dom.create('span', { className: 'fleet-badge', text: app.cat })
+    let badge = dom.create('span', { className: 'fleet-badge', text: app.cat })
     card.appendChild(dot)
     card.appendChild(info)
     card.appendChild(badge)
@@ -3184,23 +3186,23 @@ function renderAdmin(container) {
   setTimeout(() => pingFleet(fleetApps), 200)
 
   // ── HEALTH PANEL ──
-  const healthPanel = dom.create('div', { className: 'admin-panel', id: 'panel-health' })
+  let healthPanel = dom.create('div', { className: 'admin-panel', id: 'panel-health' })
   healthPanel.appendChild(dom.create('div', { className: 'admin-section-title', text: 'System Health' }))
   healthPanel.appendChild(dom.create('div', { id: 'health-data', className: 'admin-loading', text: 'Loading from axiom42.com/health ...' }))
   panels.appendChild(healthPanel)
 
   // ── ANALYTICS PANEL ──
-  const analyticsPanel = dom.create('div', { className: 'admin-panel', id: 'panel-analytics' })
+  let analyticsPanel = dom.create('div', { className: 'admin-panel', id: 'panel-analytics' })
   analyticsPanel.appendChild(dom.create('div', { className: 'admin-section-title', text: 'Analytics & Stats' }))
   analyticsPanel.appendChild(dom.create('div', { id: 'analytics-data', className: 'admin-loading', text: 'Loading from axiom42.com/api/stats ...' }))
   panels.appendChild(analyticsPanel)
 
   // ── ACTIONS PANEL ──
-  const actionsPanel = dom.create('div', { className: 'admin-panel', id: 'panel-actions' })
+  let actionsPanel = dom.create('div', { className: 'admin-panel', id: 'panel-actions' })
   actionsPanel.appendChild(dom.create('div', { className: 'admin-section-title', text: 'Quick Actions' }))
 
-  const actionGrid = dom.create('div', { className: 'action-grid' })
-  const actionItems = [
+  let actionGrid = dom.create('div', { className: 'action-grid' })
+  let actionItems = [
     { label: 'Open Axiom Backend', icon: '⚡', action: () => window.open('https://axiom42.com', '_blank') },
     { label: 'Axiom Command Center', icon: '🎛', action: () => window.open('https://axiom42.com/command-center', '_blank') },
     { label: 'Axiom Dashboard', icon: '📊', action: () => window.open('https://axiom42.com/dashboard', '_blank') },
@@ -3215,7 +3217,7 @@ function renderAdmin(container) {
     { label: 'Kill Admin Session', icon: '🔒', action: exitAdmin }
   ]
   for (const a of actionItems) {
-    const btn = dom.create('button', { className: 'action-btn', onClick: a.action })
+    let btn = dom.create('button', { className: 'action-btn', onClick: a.action })
     btn.appendChild(dom.create('span', { className: 'action-icon', text: a.icon }))
     btn.appendChild(dom.create('span', { className: 'action-label', text: a.label }))
     actionGrid.appendChild(btn)
@@ -3233,8 +3235,8 @@ function renderAdmin(container) {
 
 // ── Tab Switching ──
 function switchAdminTab(tabId) {
-  const allTabs = document.querySelectorAll('.admin-tab')
-  const allPanels = document.querySelectorAll('.admin-panel')
+  let allTabs = document.querySelectorAll('.admin-tab')
+  let allPanels = document.querySelectorAll('.admin-panel')
   for (const t of allTabs) {
     t.classList.toggle('active', t.getAttribute('data-tab') === tabId)
   }
@@ -3245,48 +3247,48 @@ function switchAdminTab(tabId) {
 
 // ── Fleet Ping ──
 async function pingFleet(apps) {
-  const results = { up: 0, down: 0, pending: 0 }
-  const uniqueUrls = [...new Set(apps.map(a => a.url))]
+  let results = { up: 0, down: 0, pending: 0 }
+  let uniqueUrls = [...new Set(apps.map(a => a.url))]
 
   for (const url of uniqueUrls) {
     try {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 5000)
+      let controller = new AbortController()
+      let timeout = setTimeout(() => controller.abort(), 5000)
       await fetch('https://' + url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal })
       clearTimeout(timeout)
       results.up = results.up + 1
-      const dot = dom.select('#dot-' + url.replace(/\./g, '-'))
+      let dot = dom.select('#dot-' + url.replace(/\./g, '-'))
       if (dot) { dot.classList.remove('pending'); dot.classList.add('up') }
     } catch (e) {
       results.down = results.down + 1
-      const dot = dom.select('#dot-' + url.replace(/\./g, '-'))
+      let dot = dom.select('#dot-' + url.replace(/\./g, '-'))
       if (dot) { dot.classList.remove('pending'); dot.classList.add('down') }
     }
   }
 
-  const statusEl = dom.select('#fleet-status')
+  let statusEl = dom.select('#fleet-status')
   if (statusEl) statusEl.textContent = results.up + ' online · ' + results.down + ' unreachable · ' + uniqueUrls.length + ' total endpoints'
 }
 
 // ── Load Health Data ──
 async function loadHealthData() {
   try {
-    const res = await fetch(API_BASE + '/health')
-    const data = await res.json()
-    const container = dom.select('#health-data')
+    let res = await fetch(API_BASE + '/health')
+    let data = await res.json()
+    let container = dom.select('#health-data')
     if (!container) return
     container.className = ''
     container.innerHTML = ''
 
-    const grid = dom.create('div', { className: 'health-grid' })
+    let grid = dom.create('div', { className: 'health-grid' })
 
     // Status card
-    const statusCard = buildStatCard('Status', data.status === 'healthy' ? '● HEALTHY' : '● DEGRADED', data.status === 'healthy' ? 'var(--green)' : 'var(--rose)')
+    let statusCard = buildStatCard('Status', data.status === 'healthy' ? '● HEALTHY' : '● DEGRADED', data.status === 'healthy' ? 'var(--green)' : 'var(--rose)')
     grid.appendChild(statusCard)
 
     // Uptime
-    const hours = Math.floor(data.uptime / 3600)
-    const mins = Math.floor((data.uptime % 3600) / 60)
+    let hours = Math.floor(data.uptime / 3600)
+    let mins = Math.floor((data.uptime % 3600) / 60)
     grid.appendChild(buildStatCard('Uptime', hours + 'h ' + mins + 'm', 'var(--cyan)'))
 
     // Memory
@@ -3307,9 +3309,9 @@ async function loadHealthData() {
 
     // Infrastructure
     container.appendChild(dom.create('div', { className: 'admin-section-title', text: 'Infrastructure', styles: { marginTop: '1rem' } }))
-    const infraGrid = dom.create('div', { className: 'health-grid' })
-    const infra = data.infrastructure
-    const infraItems = [
+    let infraGrid = dom.create('div', { className: 'health-grid' })
+    let infra = data.infrastructure
+    let infraItems = [
       { label: 'Database', val: infra.database },
       { label: 'Stripe', val: infra.stripe },
       { label: 'Twilio', val: infra.twilio },
@@ -3317,12 +3319,12 @@ async function loadHealthData() {
       { label: 'Image Gen', val: infra.imageGen }
     ]
     for (const i of infraItems) {
-      const color = (i.val === 'active' || i.val === 'connected') ? 'var(--green)' : 'var(--rose)'
+      let color = (i.val === 'active' || i.val === 'connected') ? 'var(--green)' : 'var(--rose)'
       infraGrid.appendChild(buildStatCard(i.label, i.val.toUpperCase(), color))
     }
     container.appendChild(infraGrid)
   } catch (e) {
-    const container = dom.select('#health-data')
+    let container = dom.select('#health-data')
     if (container) container.textContent = 'Failed to load: ' + e.message
   }
 }
@@ -3330,14 +3332,14 @@ async function loadHealthData() {
 // ── Load Analytics Data ──
 async function loadAnalyticsData() {
   try {
-    const res = await fetch(API_BASE + '/api/stats')
-    const data = await res.json()
-    const container = dom.select('#analytics-data')
+    let res = await fetch(API_BASE + '/api/stats')
+    let data = await res.json()
+    let container = dom.select('#analytics-data')
     if (!container) return
     container.className = ''
     container.innerHTML = ''
 
-    const grid = dom.create('div', { className: 'health-grid' })
+    let grid = dom.create('div', { className: 'health-grid' })
 
     grid.appendChild(buildStatCard('Total Queries', (data.queriesProcessed || 0).toLocaleString(), 'var(--cyan)'))
     grid.appendChild(buildStatCard('Knowledge Domains', (data.knowledgeDomains || 0).toString(), 'var(--teal)'))
@@ -3357,16 +3359,16 @@ async function loadAnalyticsData() {
 
     container.appendChild(grid)
   } catch (e) {
-    const container = dom.select('#analytics-data')
+    let container = dom.select('#analytics-data')
     if (container) container.textContent = 'Failed to load: ' + e.message
   }
 }
 
 // ── Stat Card Builder ──
 function buildStatCard(label, value, color) {
-  const card = dom.create('div', { className: 'stat-card' })
+  let card = dom.create('div', { className: 'stat-card' })
   card.appendChild(dom.create('div', { className: 'stat-label', text: label }))
-  const valEl = dom.create('div', { className: 'stat-value', text: value })
+  let valEl = dom.create('div', { className: 'stat-value', text: value })
   valEl.style.color = color
   card.appendChild(valEl)
   return card
@@ -3381,7 +3383,7 @@ dom.ready(() => {
   buildShell()
 
   // Check auth
-  const token = authToken.get()
+  let token = authToken.get()
   if (!token) {
     showAuthOverlay()
     return
@@ -3396,7 +3398,7 @@ dom.ready(() => {
   loadConversations()
 
   // Check if user has already booted (session)
-  const skipBoot = window.sessionStorage.getItem('cortex-booted')
+  let skipBoot = window.sessionStorage.getItem('cortex-booted')
 
   if (skipBoot) {
     booted.set(true)

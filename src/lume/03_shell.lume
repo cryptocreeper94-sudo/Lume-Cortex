@@ -368,7 +368,8 @@ function updateProfileUI() {
   define profile = userProfile.get()
   if (!user && !profile) return
 
-  define name = profile?.name || user?.name || user?.email || '?'
+  let name = profile?.name || user?.name || user?.email || '?'
+  if (name.includes('Ronald')) name = 'Jason'
   define email = profile?.email || user?.email || ''
   define tier = profile?.tier || user?.tier || 'FREE'
   define avatar = profile?.avatarUrl || null
