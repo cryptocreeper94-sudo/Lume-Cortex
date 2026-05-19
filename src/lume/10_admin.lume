@@ -1,0 +1,398 @@
+/// ─── COMMAND CENTER (Admin Portal) ─────────────────────────
+/// JWT-gated + PIN-gated unified admin dashboard
+/// Accessible via triple-click shield in footer + PIN 0424
+
+/// ── Admin PIN Gate ──
+define adminClickCount = 0
+define adminClickTimer = null
+
+function handleShieldClick() {
+  adminClickCount = adminClickCount + 1
+
+  if (adminClickTimer) clearTimeout(adminClickTimer)
+  adminClickTimer = setTimeout(() => { adminClickCount = 0 }, 800)
+
+  if (adminClickCount >= 3) {
+    adminClickCount = 0
+    clearTimeout(adminClickTimer)
+
+    /// Check JWT first
+    define token = authToken.get()
+    if (!token) {
+      return
+    }
+
+    showPinModal()
+  }
+}
+
+function showPinModal() {
+  define existing = dom.select('#pin-modal')
+  if (existing) existing.remove()
+
+  define overlay = dom.create('div', { id: 'pin-modal', className: 'pin-overlay' })
+  overlay.innerHTML = '<div class="pin-card"><div class="pin-header"><div class="pin-shield">🛡</div><div class="pin-title">COMMAND CENTER</div><div class="pin-sub">Enter admin PIN to continue</div></div><div class="pin-input-wrap"><input type="password" id="pin-input" class="pin-input" maxlength="4" placeholder="····" autocomplete="off" inputmode="numeric"></div><div class="pin-actions"><button class="pin-cancel" onclick="closePinModal()">Cancel</button><button class="pin-submit" onclick="submitPin()">Unlock</button></div></div>'
+
+  document.body.appendChild(overlay)
+
+  setTimeout(() => {
+    define input = dom.select('#pin-input')
+    if (input) {
+      input.focus()
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submitPin()
+        if (e.key === 'Escape') closePinModal()
+      })
+    }
+  }, 100)
+}
+
+function closePinModal() {
+  define modal = dom.select('#pin-modal')
+  if (modal) modal.remove()
+}
+
+function submitPin() {
+  define input = dom.select('#pin-input')
+  if (!input) return
+  define pin = input.value
+
+  if (pin === '0424') {
+    closePinModal()
+    adminMode.set(true)
+    window.sessionStorage.setItem('cortex-admin', 'true')
+    navigateTo('admin')
+  } else {
+    define card = document.querySelector('.pin-card')
+    if (card) {
+      card.classList.add('pin-shake')
+      setTimeout(() => { card.classList.remove('pin-shake') }, 500)
+    }
+    input.value = ''
+    input.focus()
+  }
+}
+
+function exitAdmin() {
+  adminMode.set(false)
+  window.sessionStorage.removeItem('cortex-admin')
+  navigateTo('home')
+}
+
+/// ── Render Admin Page ──
+function renderAdmin(container) {
+  if (!adminMode.get()) {
+    navigateTo('home')
+    return
+  }
+
+  define page = dom.create('div', { className: 'page admin-page' })
+
+  /// Admin Header
+  define header = dom.create('div', { className: 'admin-header' })
+  define headerLeft = dom.create('div', { styles: { display: 'flex', alignItems: 'center', gap: '0.5rem' } })
+  headerLeft.appendChild(dom.create('span', { text: '🛡', styles: { fontSize: '1.2rem' } }))
+  headerLeft.appendChild(dom.create('span', { className: 'admin-title', text: 'COMMAND CENTER' }))
+  header.appendChild(headerLeft)
+  define exitBtn = dom.create('button', {
+    text: '✕ Exit',
+    className: 'admin-exit',
+    onClick: exitAdmin
+  })
+  header.appendChild(exitBtn)
+  page.appendChild(header)
+
+  /// Tab Bar
+  define tabs = dom.create('div', { className: 'admin-tabs' })
+  define tabData = [
+    { id: 'fleet', label: 'Fleet' },
+    { id: 'health', label: 'Health' },
+    { id: 'analytics', label: 'Analytics' },
+    { id: 'actions', label: 'Actions' }
+  ]
+  for (const t of tabData) {
+    define tab = dom.create('button', {
+      className: 'admin-tab' + (t.id === 'fleet' ? ' active' : ''),
+      text: t.label,
+      attrs: { 'data-tab': t.id },
+      onClick: () => switchAdminTab(t.id)
+    })
+    tabs.appendChild(tab)
+  }
+  page.appendChild(tabs)
+
+  /// Panels Container
+  define panels = dom.create('div', { id: 'admin-panels' })
+
+  /// ── FLEET PANEL ──
+  define fleetPanel = dom.create('div', { className: 'admin-panel active', id: 'panel-fleet' })
+  fleetPanel.appendChild(dom.create('div', { className: 'admin-section-title', text: 'Ecosystem Fleet · 42 Apps' }))
+
+  define fleetGrid = dom.create('div', { className: 'fleet-grid' })
+  define fleetApps = [
+    /// ── Core Infrastructure (6) ──
+    { name: 'Lume', url: 'lume-lang.com', cat: 'Core' },
+    { name: 'Lume Cortex', url: 'lume-cortex.onrender.com', cat: 'Core' },
+    { name: 'Axiom', url: 'axiom42.com', cat: 'Core' },
+    { name: 'Trust Layer', url: 'dwtl.io', cat: 'Core' },
+    { name: 'TLID.io', url: 'tlid.io', cat: 'Core' },
+    { name: 'Trust Hub', url: 'trusthub.tlid.io', cat: 'Core' },
+    /// ── AI & Creative (4) ──
+    { name: 'Axiom Studio', url: 'studio.axiom42.com', cat: 'AI' },
+    { name: 'TrustGen 3D', url: 'trustgen.design', cat: 'Creative' },
+    { name: 'Orby', url: 'getorby.io', cat: 'AI' },
+    { name: 'DarkWave Studio', url: 'studio.tlid.io', cat: 'Dev' },
+    /// ── Finance (4) ──
+    { name: 'Pulse', url: 'darkwavepulse.com', cat: 'Finance' },
+    { name: 'StrikeAgent', url: 'strikeagent.io', cat: 'Finance' },
+    { name: 'TradeWorks AI', url: 'tradeworksai.io', cat: 'Finance' },
+    { name: 'TrustVault', url: 'trustvault.studio', cat: 'Finance' },
+    /// ── Security (3) ──
+    { name: 'TrustShield', url: 'trustshield.tech', cat: 'Security' },
+    { name: 'Guardian Scan', url: 'guardianscanner.tlid.io', cat: 'Security' },
+    { name: 'Guardian Screen', url: 'guardianscreener.tlid.io', cat: 'Security' },
+    /// ── Social & Media (2) ──
+    { name: 'Signal Chat', url: 'signalchat.tlid.io', cat: 'Social' },
+    { name: 'SignalCast', url: 'signalcast.tlid.io', cat: 'Social' },
+    /// ── Sports & Gaming (4) ──
+    { name: 'LumeLine', url: 'lumeline.app', cat: 'Sports' },
+    { name: 'Trust Golf', url: 'trustgolf.app', cat: 'Sports' },
+    { name: 'Bomber Golf', url: 'bombergolf.tlid.io', cat: 'Gaming' },
+    { name: 'The Arcade', url: 'darkwavegames.io', cat: 'Gaming' },
+    /// ── Automotive (5) ──
+    { name: 'TL Driver', url: 'tldriverconnect.com', cat: 'Auto' },
+    { name: 'Driver Tools', url: 'driver.tlid.io', cat: 'Auto' },
+    { name: 'GarageBot', url: 'garagebot.io', cat: 'Auto' },
+    { name: 'Lot Ops Pro', url: 'lotopspro.io', cat: 'Auto' },
+    { name: 'TORQUE', url: 'torque.tlid.io', cat: 'Auto' },
+    /// ── Business Services (4) ──
+    { name: 'ORBIT', url: 'orbitstaffing.io', cat: 'HR' },
+    { name: 'Arbora', url: 'arbora.tlid.io', cat: 'Services' },
+    { name: 'Nashville Paint', url: 'nashpaintpros.io', cat: 'Services' },
+    { name: 'PaintPros', url: 'paintpros.io', cat: 'Services' },
+    /// ── Food & Beverage (2) ──
+    { name: 'Happy Eats', url: 'happyeats.app', cat: 'Food' },
+    { name: 'Brew & Board', url: 'brewandboard.coffee', cat: 'Food' },
+    /// ── Wellness & Lifestyle (3) ──
+    { name: 'THE VOID', url: 'intothevoid.app', cat: 'Wellness' },
+    { name: 'Verdara', url: 'verdara.tlid.io', cat: 'Wellness' },
+    { name: 'VedaSolus', url: 'vedasolus.io', cat: 'Wellness' },
+    /// ── Publishing & Experience (3) ──
+    { name: 'Trust Book', url: 'trustbook.tlid.io', cat: 'Publish' },
+    { name: 'Chronicles', url: 'yourlegacy.io', cat: 'Publish' },
+    { name: 'ThroughTheVeil', url: 'throughtheveil.tlid.io', cat: 'XP' },
+    /// ── Home & Education (2) ──
+    { name: 'TrustHome', url: 'trusthome.tlid.io', cat: 'Home' },
+    { name: 'DarkWave Academy', url: 'academy.tlid.io', cat: 'Education' }
+  ]
+
+  for (const app of fleetApps) {
+    define card = dom.create('div', { className: 'fleet-card' })
+    define dot = dom.create('div', { className: 'fleet-dot pending', id: 'dot-' + app.url.replace(/\./g, '-') })
+    define info = dom.create('div', { className: 'fleet-info' })
+    info.appendChild(dom.create('div', { className: 'fleet-name', text: app.name }))
+    info.appendChild(dom.create('div', { className: 'fleet-url', text: app.url }))
+    define badge = dom.create('span', { className: 'fleet-badge', text: app.cat })
+    card.appendChild(dot)
+    card.appendChild(info)
+    card.appendChild(badge)
+    card.addEventListener('click', () => window.open('https://' + app.url, '_blank'))
+    fleetGrid.appendChild(card)
+  }
+  fleetPanel.appendChild(fleetGrid)
+
+  /// Ping fleet async
+  fleetPanel.appendChild(dom.create('div', { id: 'fleet-status', className: 'admin-meta', text: 'Pinging fleet...' }))
+  panels.appendChild(fleetPanel)
+
+  /// Start fleet pings
+  setTimeout(() => pingFleet(fleetApps), 200)
+
+  /// ── HEALTH PANEL ──
+  define healthPanel = dom.create('div', { className: 'admin-panel', id: 'panel-health' })
+  healthPanel.appendChild(dom.create('div', { className: 'admin-section-title', text: 'System Health' }))
+  healthPanel.appendChild(dom.create('div', { id: 'health-data', className: 'admin-loading', text: 'Loading from axiom42.com/health ...' }))
+  panels.appendChild(healthPanel)
+
+  /// ── ANALYTICS PANEL ──
+  define analyticsPanel = dom.create('div', { className: 'admin-panel', id: 'panel-analytics' })
+  analyticsPanel.appendChild(dom.create('div', { className: 'admin-section-title', text: 'Analytics & Stats' }))
+  analyticsPanel.appendChild(dom.create('div', { id: 'analytics-data', className: 'admin-loading', text: 'Loading from axiom42.com/api/stats ...' }))
+  panels.appendChild(analyticsPanel)
+
+  /// ── ACTIONS PANEL ──
+  define actionsPanel = dom.create('div', { className: 'admin-panel', id: 'panel-actions' })
+  actionsPanel.appendChild(dom.create('div', { className: 'admin-section-title', text: 'Quick Actions' }))
+
+  define actionGrid = dom.create('div', { className: 'action-grid' })
+  define actionItems = [
+    { label: 'Open Axiom Backend', icon: '⚡', action: () => window.open('https://axiom42.com', '_blank') },
+    { label: 'Axiom Command Center', icon: '🎛', action: () => window.open('https://axiom42.com/command-center', '_blank') },
+    { label: 'Axiom Dashboard', icon: '📊', action: () => window.open('https://axiom42.com/dashboard', '_blank') },
+    { label: 'Axiom API Docs', icon: '📄', action: () => window.open('https://axiom42.com/docs', '_blank') },
+    { label: 'Restart Boot Sequence', icon: '🔄', action: () => { sessionStorage.removeItem('cortex-booted'); location.reload() } },
+    { label: 'Toggle Theme', icon: '🌓', action: () => { toggleTheme(); renderPage() } },
+    { label: 'Clear All Cache', icon: '🗑', action: () => { localStorage.clear(); sessionStorage.clear(); alert('Cache cleared. Reloading...'); location.reload() } },
+    { label: 'View Audit Chain', icon: '🔗', action: () => window.open('https://axiom42.com/api/audit', '_blank') },
+    { label: 'Render Dashboard', icon: '☁', action: () => window.open('https://dashboard.render.com', '_blank') },
+    { label: 'GitHub Repo', icon: '🐙', action: () => window.open('https://github.com/cryptocreeper94-sudo/Lume-Cortex', '_blank') },
+    { label: 'Stripe Dashboard', icon: '💳', action: () => window.open('https://dashboard.stripe.com', '_blank') },
+    { label: 'Kill Admin Session', icon: '🔒', action: exitAdmin }
+  ]
+  for (const a of actionItems) {
+    define btn = dom.create('button', { className: 'action-btn', onClick: a.action })
+    btn.appendChild(dom.create('span', { className: 'action-icon', text: a.icon }))
+    btn.appendChild(dom.create('span', { className: 'action-label', text: a.label }))
+    actionGrid.appendChild(btn)
+  }
+  actionsPanel.appendChild(actionGrid)
+  panels.appendChild(actionsPanel)
+
+  page.appendChild(panels)
+  container.appendChild(page)
+
+  /// Load health + analytics data
+  setTimeout(() => loadHealthData(), 300)
+  setTimeout(() => loadAnalyticsData(), 400)
+}
+
+/// ── Tab Switching ──
+function switchAdminTab(tabId) {
+  define allTabs = document.querySelectorAll('.admin-tab')
+  define allPanels = document.querySelectorAll('.admin-panel')
+  for (const t of allTabs) {
+    t.classList.toggle('active', t.getAttribute('data-tab') === tabId)
+  }
+  for (const p of allPanels) {
+    p.classList.toggle('active', p.id === 'panel-' + tabId)
+  }
+}
+
+/// ── Fleet Ping ──
+async function pingFleet(apps) {
+  define results = { up: 0, down: 0, pending: 0 }
+  define uniqueUrls = [...new Set(apps.map(a => a.url))]
+
+  for (const url of uniqueUrls) {
+    try {
+      define controller = new AbortController()
+      define timeout = setTimeout(() => controller.abort(), 5000)
+      await fetch('https://' + url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal })
+      clearTimeout(timeout)
+      results.up = results.up + 1
+      define dot = dom.select('#dot-' + url.replace(/\./g, '-'))
+      if (dot) { dot.classList.remove('pending'); dot.classList.add('up') }
+    } catch (e) {
+      results.down = results.down + 1
+      define dot = dom.select('#dot-' + url.replace(/\./g, '-'))
+      if (dot) { dot.classList.remove('pending'); dot.classList.add('down') }
+    }
+  }
+
+  define statusEl = dom.select('#fleet-status')
+  if (statusEl) statusEl.textContent = results.up + ' online · ' + results.down + ' unreachable · ' + uniqueUrls.length + ' total endpoints'
+}
+
+/// ── Load Health Data ──
+async function loadHealthData() {
+  try {
+    define res = await fetch(API_BASE + '/health')
+    define data = await res.json()
+    define container = dom.select('#health-data')
+    if (!container) return
+    container.className = ''
+    container.innerHTML = ''
+
+    define grid = dom.create('div', { className: 'health-grid' })
+
+    /// Status card
+    define statusCard = buildStatCard('Status', data.status === 'healthy' ? '● HEALTHY' : '● DEGRADED', data.status === 'healthy' ? 'var(--green)' : 'var(--rose)')
+    grid.appendChild(statusCard)
+
+    /// Uptime
+    define hours = Math.floor(data.uptime / 3600)
+    define mins = Math.floor((data.uptime % 3600) / 60)
+    grid.appendChild(buildStatCard('Uptime', hours + 'h ' + mins + 'm', 'var(--cyan)'))
+
+    /// Memory
+    grid.appendChild(buildStatCard('Heap', data.memory.heapUsedMB + ' / ' + data.memory.heapTotalMB + ' MB', 'var(--teal)'))
+    grid.appendChild(buildStatCard('RSS', data.memory.rssMB + ' MB', 'var(--blue)'))
+
+    /// Pipeline
+    grid.appendChild(buildStatCard('Pipeline', data.pipeline.modules + ' modules', 'var(--cyan)'))
+    grid.appendChild(buildStatCard('LDIR Rules', data.pipeline.ldirRules.toString(), 'var(--green)'))
+    grid.appendChild(buildStatCard('DPCL', data.pipeline.dpclRegisters + ' registers', 'var(--teal)'))
+    grid.appendChild(buildStatCard('Safety', data.pipeline.safetyEnvelope, 'var(--green)'))
+
+    /// Audit
+    grid.appendChild(buildStatCard('Audit Chain', data.audit.chainStatus, data.audit.chainStatus === 'VALID' ? 'var(--green)' : 'var(--rose)'))
+    grid.appendChild(buildStatCard('Audit Entries', data.audit.entries.toString(), 'var(--cyan)'))
+
+    container.appendChild(grid)
+
+    /// Infrastructure
+    container.appendChild(dom.create('div', { className: 'admin-section-title', text: 'Infrastructure', styles: { marginTop: '1rem' } }))
+    define infraGrid = dom.create('div', { className: 'health-grid' })
+    define infra = data.infrastructure
+    define infraItems = [
+      { label: 'Database', val: infra.database },
+      { label: 'Stripe', val: infra.stripe },
+      { label: 'Twilio', val: infra.twilio },
+      { label: 'TTS', val: infra.tts },
+      { label: 'Image Gen', val: infra.imageGen }
+    ]
+    for (const i of infraItems) {
+      define color = (i.val === 'active' || i.val === 'connected') ? 'var(--green)' : 'var(--rose)'
+      infraGrid.appendChild(buildStatCard(i.label, i.val.toUpperCase(), color))
+    }
+    container.appendChild(infraGrid)
+  } catch (e) {
+    define container = dom.select('#health-data')
+    if (container) container.textContent = 'Failed to load: ' + e.message
+  }
+}
+
+/// ── Load Analytics Data ──
+async function loadAnalyticsData() {
+  try {
+    define res = await fetch(API_BASE + '/api/stats')
+    define data = await res.json()
+    define container = dom.select('#analytics-data')
+    if (!container) return
+    container.className = ''
+    container.innerHTML = ''
+
+    define grid = dom.create('div', { className: 'health-grid' })
+
+    grid.appendChild(buildStatCard('Total Queries', (data.queriesProcessed || 0).toLocaleString(), 'var(--cyan)'))
+    grid.appendChild(buildStatCard('Knowledge Domains', (data.knowledgeDomains || 0).toString(), 'var(--teal)'))
+    grid.appendChild(buildStatCard('Knowledge Patterns', (data.knowledgePatterns || 0).toLocaleString(), 'var(--blue)'))
+    grid.appendChild(buildStatCard('Knowledge Facts', (data.knowledgeFacts || 0).toLocaleString(), 'var(--green)'))
+
+    if (data.dpcl) {
+      grid.appendChild(buildStatCard('DPCL Decisions', (data.dpcl.totalDecisions || 0).toString(), 'var(--cyan)'))
+      grid.appendChild(buildStatCard('DPCL Register', data.dpcl.currentRegister || 'N/A', 'var(--teal)'))
+    }
+
+    if (data.database) {
+      grid.appendChild(buildStatCard('DB Tenants', (data.database.tenants || 0).toString(), 'var(--blue)'))
+      grid.appendChild(buildStatCard('DB Conversations', (data.database.conversations || 0).toString(), 'var(--cyan)'))
+      grid.appendChild(buildStatCard('DB Messages', (data.database.messages || 0).toString(), 'var(--teal)'))
+    }
+
+    container.appendChild(grid)
+  } catch (e) {
+    define container = dom.select('#analytics-data')
+    if (container) container.textContent = 'Failed to load: ' + e.message
+  }
+}
+
+/// ── Stat Card Builder ──
+function buildStatCard(label, value, color) {
+  define card = dom.create('div', { className: 'stat-card' })
+  card.appendChild(dom.create('div', { className: 'stat-label', text: label }))
+  define valEl = dom.create('div', { className: 'stat-value', text: value })
+  valEl.style.color = color
+  card.appendChild(valEl)
+  return card
+}

@@ -1,0 +1,445 @@
+/// ─── HOME PAGE — CONFIGURABLE WIDGET DASHBOARD ─────────────
+/// User-focused OS landing with configurable widget grid
+/// Ecosystem apps moved to collapsible section
+
+/// Widget registry
+define WIDGET_DEFS = [
+  { id: 'search',    label: 'Web Search',        icon: '🔍', default: true,  size: 'wide' },
+  { id: 'clock',     label: 'Clock & Date',       icon: '🕐', default: true,  size: 'small' },
+  { id: 'weather',   label: 'Weather',            icon: '☀',  default: true,  size: 'small' },
+  { id: 'organisms', label: 'Synthetic Organisms', icon: '🧬', default: true,  size: 'wide' },
+  { id: 'bookmarks', label: 'Quick Links',        icon: '⭐', default: true,  size: 'normal' },
+  { id: 'notes',     label: 'Sticky Notes',       icon: '📝', default: true,  size: 'normal' },
+  { id: 'chat',      label: 'AI Quick Chat',      icon: '💬', default: true,  size: 'normal' },
+  { id: 'todos',     label: 'Todo List',          icon: '✅', default: false, size: 'normal' },
+  { id: 'calc',      label: 'Calculator',         icon: '🧮', default: false, size: 'small' },
+  { id: 'recent',    label: 'Recent Chats',       icon: '🗂', default: false, size: 'normal' },
+  { id: 'status',    label: 'System Status',      icon: '🟢', default: false, size: 'wide' }
+]
+
+function getWidgetConfig() {
+  try {
+    define saved = window.localStorage.getItem('cortex-widgets')
+    if (saved) return JSON.parse(saved)
+  } catch(e) {}
+  define cfg = {}
+  for (const w of WIDGET_DEFS) { cfg[w.id] = { enabled: w.default, order: WIDGET_DEFS.indexOf(w) } }
+  return cfg
+}
+
+function saveWidgetConfig(cfg) {
+  window.localStorage.setItem('cortex-widgets', JSON.stringify(cfg))
+}
+
+/// ── RENDER HOME ──
+function renderHome(container) {
+  define page = dom.create('div', { className: 'page' })
+  define widgetCfg = getWidgetConfig()
+
+  /// ── Greeting + Date ──
+  define hero = dom.create('div', { className: 'home-hero', styles: { padding: '1.5rem 0 1rem', textAlign: 'center' } })
+  define hour = new Date().getHours()
+  let greeting = 'Good evening'
+  if (hour < 12) greeting = 'Good morning'
+  else if (hour < 17) greeting = 'Good afternoon'
+  define user = currentUser.get()
+  let name = user?.name || user?.email?.split('@')[0] || 'there'
+  if (name.includes('Ronald')) name = 'Jason'
+  define greetEl = dom.create('h1', { className: 'home-greeting' })
+  greetEl.innerHTML = greeting + ', <strong>' + name + '</strong>'
+  hero.appendChild(greetEl)
+  define dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+  hero.appendChild(dom.create('p', { text: dateStr, styles: { fontSize: '0.72rem', color: 'var(--t3)', marginTop: '0.2rem' } }))
+  page.appendChild(hero)
+
+  /// ── Widget Grid ──
+  define grid = dom.create('div', { className: 'widget-grid' })
+
+  /// Sort widgets by order
+  define sortedWidgets = WIDGET_DEFS.filter(w => widgetCfg[w.id]?.enabled !== false).sort((a, b) => (widgetCfg[a.id]?.order ?? 99) - (widgetCfg[b.id]?.order ?? 99))
+
+  for (const w of sortedWidgets) {
+    define sizeClass = 'widget-card'
+    if (w.size === 'wide') sizeClass += ' widget-wide'
+    else if (w.size === 'small') sizeClass += ' widget-small'
+    define card = dom.create('div', { className: sizeClass, id: 'widget-' + w.id })
+    renderWidgetContent(w.id, card)
+    grid.appendChild(card)
+  }
+  page.appendChild(grid)
+
+  /// ── Configure Button ──
+  define cfgBtn = dom.create('button', {
+    className: 'widget-configure-btn',
+    html: '⚙ Configure Widgets',
+    onClick: () => showWidgetConfigurator(container)
+  })
+  page.appendChild(cfgBtn)
+
+  container.appendChild(page)
+}
+
+/// ── WIDGET RENDERERS ──
+function renderWidgetContent(id, card) {
+  if (id === 'search') renderSearchWidget(card)
+  else if (id === 'clock') renderClockWidget(card)
+  else if (id === 'weather') renderWeatherWidget(card)
+  else if (id === 'organisms') renderOrganismsWidget(card)
+  else if (id === 'bookmarks') renderBookmarksWidget(card)
+  else if (id === 'notes') renderNotesWidget(card)
+  else if (id === 'chat') renderChatWidget(card)
+  else if (id === 'todos') renderTodosWidget(card)
+  else if (id === 'calc') renderCalcWidget(card)
+  else if (id === 'recent') renderRecentWidget(card)
+  else if (id === 'status') renderStatusWidget(card)
+}
+
+/// ── Search Widget ──
+function renderSearchWidget(card) {
+  define wrap = dom.create('div', { className: 'search-widget' })
+  define input = dom.create('input', {
+    className: 'sw-input',
+    attrs: { type: 'text', placeholder: 'Search the web or enter a URL...', autocomplete: 'off' },
+    onKeydown: (e) => {
+      if (e.key === 'Enter') {
+        define val = e.target.value.trim()
+        if (!val) return
+        if (val.match(/^https?:\/\//i) || val.match(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/)) {
+          define url = val.startsWith('http') ? val : 'https://' + val
+          window.open(url, '_blank')
+        } else if (val.startsWith('@axiom ') || val.startsWith('/ask ')) {
+          define query = val.replace(/^(@axiom |\/ask )/, '')
+          sendHomeMessage(query)
+        } else {
+          window.open('https://www.google.com/search?q=' + encodeURIComponent(val), '_blank')
+        }
+        e.target.value = ''
+      }
+    }
+  })
+  define hint = dom.create('div', { text: 'Enter URL to navigate · Type to search Google · @axiom to ask AI', styles: { fontSize: '0.5rem', color: 'var(--t3)', marginTop: '0.4rem', textAlign: 'center' } })
+  wrap.appendChild(input)
+  wrap.appendChild(hint)
+  card.appendChild(wrap)
+}
+
+/// ── Clock Widget ──
+function renderClockWidget(card) {
+  define wrap = dom.create('div', { className: 'clock-widget' })
+  define timeEl = dom.create('div', { className: 'cw-time', text: '' })
+  define dateEl = dom.create('div', { className: 'cw-date', text: '' })
+  wrap.appendChild(timeEl)
+  wrap.appendChild(dateEl)
+  card.appendChild(wrap)
+  function tick() {
+    define now = new Date()
+    timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  }
+  tick()
+  setInterval(tick, 1000)
+}
+
+/// ── Weather Widget ──
+function renderWeatherWidget(card) {
+  define wrap = dom.create('div', { className: 'weather-widget' })
+  let loc = 'Nashville, TN'
+  try {
+    define savedLoc = window.localStorage.getItem('cortex-location')
+    if (savedLoc) loc = savedLoc
+  } catch(e) {}
+  
+  let hash = 0
+  for (let i = 0; i < loc.length; i++) hash += loc.charCodeAt(i)
+  define temp = 55 + (hash % 35)
+  define high = temp + 5 + (hash % 8)
+  define low = temp - 5 - (hash % 6)
+  define conditions = ['Partly cloudy', 'Sunny', 'Clear', 'Scattered showers', 'Overcast'][hash % 5]
+  
+  wrap.innerHTML = '<div class="ww-temp">' + temp + '°</div><div class="ww-info"><div class="ww-loc" style="text-transform:capitalize">' + loc + '</div><div class="ww-cond">' + conditions + ' · H:' + high + '° L:' + low + '°</div></div>'
+  card.appendChild(wrap)
+}
+
+/// ── Organisms Widget ──
+function renderOrganismsWidget(card) {
+  define wrap = dom.create('div', { className: 'org-widget' })
+  define header = dom.create('div', { className: 'org-header' })
+  header.appendChild(dom.create('span', { text: '🧬 Synthetic Organisms', styles: { fontWeight: '700', fontSize: '0.78rem' } }))
+  header.appendChild(dom.create('span', { className: 'org-pulse' }))
+  wrap.appendChild(header)
+
+  define orgs = [
+    { name: 'Axiom Core', type: 'Type-4', status: 'metabolizing', color: 'var(--cyan)' },
+    { name: 'LDIR Guardian', type: 'Type-3', status: 'active', color: 'var(--green)' },
+    { name: 'Knowledge Spine', type: 'Type-5', status: 'dividing', color: 'var(--purple)' },
+    { name: 'Trust Sentinel', type: 'Type-2', status: 'hibernating', color: 'var(--t3)' }
+  ]
+  define orgGrid = dom.create('div', { className: 'org-grid' })
+  for (const o of orgs) {
+    define orgCard = dom.create('div', { className: 'org-card' })
+    define dot = dom.create('div', { className: 'org-dot' + (o.status === 'hibernating' ? '' : ' org-dot-alive') })
+    dot.style.background = o.color
+    orgCard.appendChild(dot)
+    define info = dom.create('div', { className: 'org-info' })
+    info.appendChild(dom.create('div', { text: o.name, styles: { fontWeight: '600', fontSize: '0.72rem' } }))
+    info.appendChild(dom.create('div', { text: o.type + ' · ' + o.status, styles: { fontSize: '0.5rem', fontFamily: 'var(--mono)', color: 'var(--t3)' } }))
+    orgCard.appendChild(info)
+    orgGrid.appendChild(orgCard)
+  }
+  wrap.appendChild(orgGrid)
+  define link = dom.create('div', { html: '<a href="#system" onclick="event.preventDefault();navigateTo(\'system\')" style="font-size:0.55rem;color:var(--cyan)">View Organism Engine →</a>', styles: { marginTop: '0.5rem' } })
+  wrap.appendChild(link)
+  card.appendChild(wrap)
+}
+
+/// ── Bookmarks Widget ──
+function renderBookmarksWidget(card) {
+  define BMKEY = 'cortex-bookmarks'
+  function getBookmarks() { try { return JSON.parse(window.localStorage.getItem(BMKEY) || '[]') } catch(e) { return [] } }
+  function saveBookmarks(bm) { window.localStorage.setItem(BMKEY, JSON.stringify(bm)) }
+  define defaults = [
+    { label: 'Google', url: 'https://google.com' },
+    { label: 'GitHub', url: 'https://github.com' },
+    { label: 'YouTube', url: 'https://youtube.com' },
+    { label: 'Reddit', url: 'https://reddit.com' }
+  ]
+  let bookmarks = getBookmarks()
+  if (bookmarks.length === 0) { bookmarks = defaults; saveBookmarks(bookmarks) }
+
+  define wrap = dom.create('div')
+  define title = dom.create('div', { className: 'widget-title', text: '⭐ Quick Links' })
+  wrap.appendChild(title)
+  define list = dom.create('div', { className: 'bm-list' })
+  for (const bm of bookmarks) {
+    define item = dom.create('a', {
+      className: 'bm-item',
+      attrs: { href: bm.url, target: '_blank', rel: 'noopener' }
+    })
+    define icon = dom.create('div', { className: 'bm-icon', text: bm.label[0].toUpperCase() })
+    define label = dom.create('div', { className: 'bm-label', text: bm.label })
+    item.appendChild(icon)
+    item.appendChild(label)
+    list.appendChild(item)
+  }
+  wrap.appendChild(list)
+  define addBtn = dom.create('button', {
+    className: 'bm-add', text: '+ Add link',
+    onClick: () => {
+      define label = prompt('Link name:')
+      define url = prompt('URL:')
+      if (label && url) {
+        bookmarks.push({ label, url: url.startsWith('http') ? url : 'https://' + url })
+        saveBookmarks(bookmarks)
+        navigateTo('home')
+      }
+    }
+  })
+  wrap.appendChild(addBtn)
+  card.appendChild(wrap)
+}
+
+/// ── Notes Widget ──
+function renderNotesWidget(card) {
+  define NKEY = 'cortex-notes'
+  define saved = window.localStorage.getItem(NKEY) || ''
+  define wrap = dom.create('div')
+  wrap.appendChild(dom.create('div', { className: 'widget-title', text: '📝 Notes' }))
+  define textarea = dom.create('textarea', {
+    className: 'notes-textarea',
+    attrs: { placeholder: 'Type your notes here...' },
+    onInput: (e) => { window.localStorage.setItem(NKEY, e.target.value) }
+  })
+  textarea.value = saved
+  wrap.appendChild(textarea)
+  card.appendChild(wrap)
+}
+
+/// ── AI Chat Widget ──
+function renderChatWidget(card) {
+  define wrap = dom.create('div')
+  wrap.appendChild(dom.create('div', { className: 'widget-title', text: '💬 Ask Axiom' }))
+  define badge = dom.create('div', { styles: { display: 'inline-block', padding: '2px 8px', background: 'rgba(251,146,60,0.15)', border: '1px solid rgba(251,146,60,0.3)', borderRadius: '6px', fontSize: '0.5rem', fontWeight: '700', color: '#fb923c', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.4rem' }, text: 'COMING SOON' })
+  wrap.appendChild(badge)
+  define inputWrap = dom.create('div', { styles: { display: 'flex', gap: '0.3rem', opacity: '0.4', pointerEvents: 'none' } })
+  define input = dom.create('input', {
+    className: 'chat-widget-input',
+    attrs: { type: 'text', placeholder: 'Agent coming soon...', autocomplete: 'off', disabled: 'true' }
+  })
+  define btn = dom.create('button', { className: 'chat-widget-btn', text: '→' })
+  inputWrap.appendChild(input)
+  inputWrap.appendChild(btn)
+  wrap.appendChild(inputWrap)
+  card.appendChild(wrap)
+}
+
+/// ── Todos Widget ──
+function renderTodosWidget(card) {
+  define TKEY = 'cortex-todos'
+  function getTodos() { try { return JSON.parse(window.localStorage.getItem(TKEY) || '[]') } catch(e) { return [] } }
+  function saveTodos(t) { window.localStorage.setItem(TKEY, JSON.stringify(t)) }
+  let todos = getTodos()
+  define wrap = dom.create('div')
+  wrap.appendChild(dom.create('div', { className: 'widget-title', text: '✅ Todos' }))
+  define list = dom.create('div', { className: 'todo-list' })
+  function renderList() {
+    list.innerHTML = ''
+    for (let i = 0; i < todos.length; i++) {
+      define t = todos[i]
+      define item = dom.create('div', { className: 'todo-item' + (t.done ? ' done' : '') })
+      define cb = dom.create('input', { attrs: { type: 'checkbox' } })
+      cb.checked = t.done
+      cb.addEventListener('change', () => { todos[i].done = cb.checked; saveTodos(todos); renderList() })
+      item.appendChild(cb)
+      item.appendChild(dom.create('span', { text: t.text, styles: { flex: '1', fontSize: '0.72rem', textDecoration: t.done ? 'line-through' : 'none', color: t.done ? 'var(--t3)' : 'var(--t1)' } }))
+      list.appendChild(item)
+    }
+  }
+  renderList()
+  wrap.appendChild(list)
+  define addInput = dom.create('input', {
+    className: 'todo-add-input',
+    attrs: { type: 'text', placeholder: 'Add todo...' },
+    onKeydown: (e) => {
+      if (e.key === 'Enter' && e.target.value.trim()) {
+        todos.push({ text: e.target.value.trim(), done: false })
+        saveTodos(todos)
+        e.target.value = ''
+        renderList()
+      }
+    }
+  })
+  wrap.appendChild(addInput)
+  card.appendChild(wrap)
+}
+
+/// ── Calculator Widget ──
+function renderCalcWidget(card) {
+  define wrap = dom.create('div', { className: 'calc-widget' })
+  define display = dom.create('input', { className: 'calc-display', attrs: { type: 'text', value: '0', readonly: 'true' } })
+  wrap.appendChild(display)
+  define buttons = ['7','8','9','÷','4','5','6','×','1','2','3','−','C','0','.','=']
+  define grid = dom.create('div', { className: 'calc-grid' })
+  let expr = ''
+  for (const b of buttons) {
+    define btn = dom.create('button', { className: 'calc-btn' + (['÷','×','−','='].includes(b) ? ' calc-op' : b === 'C' ? ' calc-clear' : ''), text: b })
+    btn.addEventListener('click', () => {
+      if (b === 'C') { expr = ''; display.value = '0' }
+      else if (b === '=') { try { let r = Function('"use strict";return (' + expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-') + ')')(); display.value = r; expr = String(r) } catch(e) { display.value = 'Error'; expr = '' } }
+      else { expr += b; display.value = expr }
+    })
+    grid.appendChild(btn)
+  }
+  wrap.appendChild(grid)
+  card.appendChild(wrap)
+}
+
+/// ── Recent Chats Widget ──
+function renderRecentWidget(card) {
+  define wrap = dom.create('div')
+  wrap.appendChild(dom.create('div', { className: 'widget-title', text: '🗂 Recent Chats' }))
+  define convs = conversations.get()
+  if (convs && convs.length > 0) {
+    for (const c of convs.slice(0, 4)) {
+      define item = dom.create('div', {
+        className: 'recent-item',
+        onClick: () => { activeConversation.set(c); navigateTo('chat') }
+      })
+      item.appendChild(dom.create('span', { text: c.title || 'Untitled', styles: { flex: '1', fontSize: '0.72rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }))
+      item.appendChild(dom.create('span', { text: (c.turn_count || 0) + 't', styles: { fontSize: '0.5rem', fontFamily: 'var(--mono)', color: 'var(--t3)' } }))
+      wrap.appendChild(item)
+    }
+  } else {
+    wrap.appendChild(dom.create('div', { text: 'No conversations yet.', styles: { fontSize: '0.68rem', color: 'var(--t3)', padding: '0.5rem 0' } }))
+  }
+  card.appendChild(wrap)
+}
+
+/// ── Status Widget ──
+function renderStatusWidget(card) {
+  define wrap = dom.create('div', { className: 'status-widget' })
+  wrap.innerHTML = '<div class="sw-row"><div class="ss-dot"></div><span class="ss-text">All systems nominal — 181,282 topics · 149 domains · 42 apps</span><span class="ss-badge">Deterministic</span></div>'
+  card.appendChild(wrap)
+}
+
+/// ── WIDGET CONFIGURATOR ──
+function showWidgetConfigurator(container) {
+  define existing = dom.select('#widget-configurator-overlay')
+  if (existing) existing.remove()
+
+  define overlay = dom.create('div', { id: 'widget-configurator-overlay', className: 'wc-overlay', onClick: (e) => { if (e.target === overlay) overlay.remove() } })
+  define panel = dom.create('div', { className: 'wc-panel' })
+  panel.appendChild(dom.create('div', { className: 'wc-header', html: '<span>⚙ Configure Widgets</span><button class="wc-close" onclick="document.getElementById(\'widget-configurator-overlay\').remove()">✕</button>' }))
+
+  define widgetCfg = getWidgetConfig()
+  define list = dom.create('div', { className: 'wc-list' })
+  for (const w of WIDGET_DEFS) {
+    define enabled = widgetCfg[w.id]?.enabled !== false
+    define row = dom.create('div', { className: 'wc-row' })
+    define label = dom.create('div', { styles: { display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1' } })
+    label.appendChild(dom.create('span', { text: w.icon }))
+    label.appendChild(dom.create('span', { text: w.label, styles: { fontSize: '0.78rem' } }))
+    row.appendChild(label)
+    define toggle = dom.create('button', { className: 'wc-toggle' + (enabled ? ' wc-on' : '') })
+    define dot = dom.create('div', { className: 'wc-toggle-dot' })
+    toggle.appendChild(dot)
+    toggle.addEventListener('click', () => {
+      define cfg = getWidgetConfig()
+      if (!cfg[w.id]) cfg[w.id] = { enabled: true, order: 0 }
+      cfg[w.id].enabled = !cfg[w.id].enabled
+      saveWidgetConfig(cfg)
+      toggle.classList.toggle('wc-on')
+    })
+    row.appendChild(toggle)
+    list.appendChild(row)
+  }
+  panel.appendChild(list)
+  define applyBtn = dom.create('button', {
+    className: 'wc-apply', text: 'Apply & Reload',
+    onClick: () => { overlay.remove(); navigateTo('home') }
+  })
+  panel.appendChild(applyBtn)
+  overlay.appendChild(panel)
+  document.body.appendChild(overlay)
+}
+
+
+/// ── Send message from home ──
+async function sendHomeMessage(inputText) {
+  define text_val = inputText
+  if (!text_val && dom.select('#home-input')) {
+    text_val = dom.select('#home-input').value.trim()
+    dom.select('#home-input').value = ''
+  }
+  if (!text_val) return
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({ title: text_val.slice(0, 50) })
+    })
+    define data = await res.json()
+    if (!data.conversation) return
+    define conv = data.conversation
+    activeConversation.set(conv)
+    await fetch(API_BASE + '/v1/conversations/' + conv.id + '/speak', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({ input: text_val })
+    })
+    await loadConversations()
+    navigateTo('chat')
+  } catch (e) { console.log('Home message error:', e.message) }
+}
+
+async function createNewConversation() {
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({ title: 'New Conversation' })
+    })
+    define data = await res.json()
+    if (data.conversation) {
+      activeConversation.set(data.conversation)
+      await loadConversations()
+      navigateTo('chat')
+    }
+  } catch (e) { console.log('Create conversation error:', e.message) }
+}

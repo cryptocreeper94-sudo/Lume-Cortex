@@ -1,0 +1,634 @@
+/// ─── APP SHELL ──────────────────────────────────────────────
+/// Dock-based layout with topbar, profile menu, and auth overlay
+
+function buildShell() {
+  define root = dom.create('div', { id: 'cortex-root' })
+
+  /// ── Cockpit Status Bar ──
+  define statusBar = dom.create('header', { className: 'cockpit-status' })
+
+  /// Left: brand + time
+  define csLeft = dom.create('div', { className: 'cs-left' })
+  define csBrand = dom.create('div', { className: 'cs-brand' })
+  csBrand.appendChild(dom.create('div', { className: 'brand-logo', html: '⬡' }))
+  csBrand.appendChild(dom.create('span', { className: 'brand-name', text: 'CORTEX' }))
+  csLeft.appendChild(csBrand)
+  define csTime = dom.create('div', { className: 'cs-time', id: 'cs-time' })
+  csLeft.appendChild(csTime)
+  statusBar.appendChild(csLeft)
+
+  /// Center: live metrics (hidden on mobile via CSS)
+  define csCenter = dom.create('div', { className: 'cs-center' })
+  csCenter.innerHTML = '<div class="cs-metric"><div class="cs-dot"></div><span class="cs-metric-val" id="cs-organisms">4</span><span class="cs-metric-label">Organisms</span></div><div class="cs-divider"></div><div class="cs-metric"><span class="cs-metric-val" id="cs-domains">149</span><span class="cs-metric-label">Domains</span></div><div class="cs-divider"></div><div class="cs-metric"><span class="cs-metric-val" id="cs-tau">τ 0</span></div>'
+  statusBar.appendChild(csCenter)
+
+  /// Right: search + theme + user
+  define csRight = dom.create('div', { className: 'cs-right' })
+
+  /// Inline search
+  define csSearch = dom.create('div', { className: 'cs-search' })
+  define searchInput = dom.create('input', {
+    className: 'cs-search-input', id: 'topbar-search',
+    attrs: { type: 'text', placeholder: 'Search / URL / @axiom', autocomplete: 'off' },
+    onKeydown: (e) => {
+      if (e.key === 'Enter') {
+        define val = e.target.value.trim()
+        if (!val) return
+        if (val.match(/^https?:\/\//i) || val.match(/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/)) {
+          window.open(val.startsWith('http') ? val : 'https://' + val, '_blank')
+        } else if (val.startsWith('@axiom ') || val.startsWith('/ask ')) {
+          sendHomeMessage(val.replace(/^(@axiom |\/ask )/, ''))
+        } else {
+          window.open('https://www.google.com/search?q=' + encodeURIComponent(val), '_blank')
+        }
+        e.target.value = ''
+      }
+    }
+  })
+  csSearch.appendChild(searchInput)
+  csSearch.appendChild(dom.create('span', { className: 'search-shortcut', text: '⌘K' }))
+  csRight.appendChild(csSearch)
+
+  /// Theme toggle
+  define themeBtn = dom.create('button', {
+    className: 'topbar-btn', id: 'theme-btn',
+    html: theme.get() === 'dark' ? '☀' : '☾',
+    onClick: () => {
+      toggleTheme()
+      define btn = dom.select('#theme-btn')
+      if (btn) btn.innerHTML = theme.get() === 'dark' ? '☀' : '☾'
+    }
+  })
+  csRight.appendChild(themeBtn)
+
+  /// User info (desktop only via CSS)
+  define csUserInfo = dom.create('div', { className: 'cs-user-info', id: 'cs-user-info' })
+  csUserInfo.appendChild(dom.create('span', { className: 'cs-user-name', id: 'cs-user-name', text: 'Operator' }))
+  csUserInfo.appendChild(dom.create('span', { className: 'cs-user-role', text: 'Cortex OS' }))
+  csRight.appendChild(csUserInfo)
+
+  /// Avatar button
+  define avatarBtn = dom.create('button', { className: 'avatar-btn', id: 'avatar-btn', onClick: toggleProfileMenu })
+  define avatarInner = dom.create('div', { className: 'avatar-circle', id: 'avatar-circle', text: '?' })
+  avatarBtn.appendChild(avatarInner)
+  csRight.appendChild(avatarBtn)
+  statusBar.appendChild(csRight)
+
+  /// Profile dropdown (attached to status bar)
+  define profileMenu = dom.create('div', { className: 'profile-menu', id: 'profile-menu' })
+  profileMenu.innerHTML = '<div class="pm-header"><div class="pm-avatar" id="pm-avatar">?</div><div class="pm-info"><div class="pm-name" id="pm-name">—</div><div class="pm-email" id="pm-email">—</div><div class="pm-tier" id="pm-tier">FREE</div></div></div><div class="pm-divider"></div><button class="pm-item" id="pm-upload"><span>📷</span> Change Photo</button><button class="pm-item" onclick="navigateTo(\'settings\')"><span>⚙</span> Settings</button><div class="pm-divider"></div><button class="pm-item pm-danger" onclick="doLogout()"><span>↩</span> Sign Out</button>'
+  statusBar.appendChild(profileMenu)
+
+  root.appendChild(statusBar)
+
+  /// ── Tau binding to cockpit ──
+  globalTau.on_change((v) => {
+    define el = dom.select('#cs-tau')
+    if (el) el.textContent = 'τ ' + text.pad_start(String(v), 5, '0')
+  })
+
+  /// ── Cockpit time updater ──
+  function updateCockpitTime() {
+    define el = dom.select('#cs-time')
+    if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  }
+  updateCockpitTime()
+  setInterval(updateCockpitTime, 30000)
+
+  /// ── Main Viewport ──
+  define viewport = dom.create('main', { className: 'viewport', id: 'main-viewport' })
+  root.appendChild(viewport)
+
+  /// ── Cockpit Dock (floating pill) ──
+  define dock = dom.create('nav', { className: 'cockpit-dock' })
+  define dockPill = dom.create('div', { className: 'dock-pill' })
+
+  for (const [key, route] of Object.entries(ROUTES)) {
+    if (!route.dock) continue
+    define item = dom.create('button', {
+      className: 'dock-item',
+      id: 'dock-' + key,
+      onClick: () => navigateTo(key)
+    })
+    define icon = dom.create('span', { className: 'dock-icon', text: route.icon })
+    define label = dom.create('span', { className: 'dock-label', text: route.label })
+    item.appendChild(icon)
+    item.appendChild(label)
+    dockPill.appendChild(item)
+  }
+  
+  /// Add Launchpad / App Drawer Button to Dock
+  define appsItem = dom.create('button', {
+    className: 'dock-item',
+    id: 'dock-apps',
+    onClick: toggleLaunchpad
+  })
+  appsItem.appendChild(dom.create('span', { className: 'dock-icon', text: '⊞' }))
+  appsItem.appendChild(dom.create('span', { className: 'dock-label', text: 'Apps' }))
+  dockPill.appendChild(appsItem)
+
+  dock.appendChild(dockPill)
+
+  /// Legal footer
+  define legalFooter = dom.create('div', { className: 'legal-footer' })
+  legalFooter.innerHTML = '© 2026 DarkWave Studios LLC <span class="legal-separator">·</span> <a href="#terms" onclick="event.preventDefault();navigateTo(\'terms\')">Terms</a> <span class="legal-separator">·</span> <a href="#privacy" onclick="event.preventDefault();navigateTo(\'privacy\')">Privacy</a> <span class="legal-separator">·</span> <a href="https://axiom42.com" target="_blank">API</a> <span class="legal-separator">·</span> <span class="legal-shield" onclick="handleShieldClick()">🛡 TrustShield</span> <span class="legal-separator">·</span> Patent Pending'
+  root.appendChild(legalFooter)
+  root.appendChild(dock)
+
+  /// ── Signal Chat Bubble ──
+  define signalBubble = dom.create('button', {
+    className: 'signal-bubble', id: 'signal-bubble',
+    html: '💬',
+    onClick: toggleSignalChat
+  })
+  root.appendChild(signalBubble)
+
+  /// Signal Chat Panel
+  define signalPanel = dom.create('div', { className: 'signal-panel', id: 'signal-panel' })
+  signalPanel.innerHTML = '<div class="signal-panel-header"><span class="signal-panel-title">💬 Signal Chat</span><button class="signal-panel-close" onclick="toggleSignalChat()">✕</button></div><div class="signal-messages" id="signal-messages"><div class="signal-msg incoming"><div class="sender">SYSTEM</div>Welcome to Signal Chat — the Trust Layer community channel.</div></div><div class="signal-input-bar"><input type="text" id="signal-input" placeholder="Type a message..." autocomplete="off"><button class="signal-send" onclick="sendSignalMsg()">→</button></div>'
+  root.appendChild(signalPanel)
+
+  /// ── Auth Overlay ──
+  define authOverlay = dom.create('div', { className: 'auth-overlay', id: 'auth-overlay' })
+  authOverlay.innerHTML = '<div class="auth-card"><div class="auth-header"><div class="auth-logo">⬡</div><h1 class="auth-title">CORTEX</h1><p class="auth-sub">Lume-OS · Deterministic Meta-Operating System</p></div><div class="auth-tabs"><button class="auth-tab active" id="atab-login" onclick="switchAuthTab(\'login\')">Sign In</button><button class="auth-tab" id="atab-signup" onclick="switchAuthTab(\'signup\')">Create Account</button></div><div class="auth-error" id="auth-error"></div><div id="auth-form-login"><button style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.65rem;color:var(--t1);font-size:0.72rem;cursor:pointer;font-family:var(--sans);transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.4rem" onmouseover="this.style.borderColor=\'rgba(6,182,212,0.3)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.1)\'" onclick="handleGoogleLogin()"><svg width=16 height=16 viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Continue with Google</button><button style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.65rem;color:var(--t1);font-size:0.72rem;cursor:pointer;font-family:var(--sans);transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.4rem" onmouseover="this.style.borderColor=\'rgba(6,182,212,0.3)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.1)\'" onclick="handleGitHubLogin()"><svg width=16 height=16 viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg> Continue with GitHub</button><div style="display:flex;align-items:center;gap:0.75rem;margin:0.6rem 0;color:var(--t3);font-size:0.6rem;text-transform:uppercase"><span style="flex:1;height:1px;background:var(--glass-border)"></span>or sign in with email<span style="flex:1;height:1px;background:var(--glass-border)"></span></div><div class="auth-field"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email"></div><div class="auth-field"><label>Password</label><input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password"></div><button class="auth-submit" id="auth-submit" onclick="handleAuth()">Sign In</button><div style="display:flex;align-items:center;gap:0.75rem;margin:1rem 0;color:var(--t3);font-size:0.6rem;text-transform:uppercase"><span style="flex:1;height:1px;background:var(--glass-border)"></span>or<span style="flex:1;height:1px;background:var(--glass-border)"></span></div><button style="width:100%;background:var(--card);border:1px solid var(--glass-border);border-radius:8px;padding:0.6rem;color:var(--t2);font-size:0.72rem;cursor:pointer;font-family:var(--sans);transition:all 0.15s" onmouseover="this.style.borderColor=\'rgba(6,182,212,0.2)\';this.style.color=\'var(--t1)\'" onmouseout="this.style.borderColor=\'var(--glass-border)\';this.style.color=\'var(--t2)\'" onclick="window.location.href=\'https://dwtl.io/login?redirect=cortex&callback=\'+encodeURIComponent(window.location.origin)">🔐 Sign in with Trust Layer SSO</button></div><div id="auth-form-signup" style="display:none"><div class="auth-field"><label>Email</label><input type="email" id="auth-email2" placeholder="you@example.com" autocomplete="email"></div><div class="auth-field"><label>Password</label><input type="password" id="auth-pass2" placeholder="Min 8 characters" autocomplete="new-password"></div><div class="auth-field"><label>Display Name <span style="font-size:0.55rem;color:var(--t3)">(optional)</span></label><input type="text" id="auth-name" placeholder="How you want to appear" autocomplete="name"></div><button class="auth-submit" onclick="handleSignup()">Create Account</button></div><div class="auth-footer-text">© 2026 DarkWave Studios LLC · Patent Pending</div></div>'
+  root.appendChild(authOverlay)
+
+  /// Hidden file input for avatar upload
+  define fileInput = dom.create('input', { id: 'avatar-file-input', attrs: { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif', style: 'display:none' } })
+  root.appendChild(fileInput)
+
+  dom.mount(root)
+
+  /// ── Expose auth functions to window for inline onclick handlers ──
+  window.switchAuthTab = switchAuthTab
+  window.handleAuth = handleAuth
+  window.handleSignup = handleSignup
+  window.handleGoogleLogin = handleGoogleLogin
+  window.handleGitHubLogin = handleGitHubLogin
+  window.toggleSignalChat = toggleSignalChat
+  window.toggleLaunchpad = toggleLaunchpad
+
+  /// Wire avatar upload
+  dom.on('#avatar-file-input', 'change', handleAvatarUpload)
+  dom.on('#pm-upload', 'click', () => { dom.select('#avatar-file-input').click() })
+
+  /// Close profile menu on outside click
+  document.addEventListener('click', (e) => {
+    define menu = dom.select('#profile-menu')
+    define btn = dom.select('#avatar-btn')
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.remove('open')
+    }
+  })
+
+  /// Keyboard shortcut: Cmd+K or Ctrl+K → focus search
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault()
+      define el = dom.select('#topbar-search')
+      if (el) el.focus()
+    }
+  })
+}
+
+/// ── Profile Menu ──
+function toggleProfileMenu() {
+  dom.toggle_class('#profile-menu', 'open')
+}
+
+/// ── OS Launchpad (App Drawer) ──
+function toggleLaunchpad() {
+  define existing = dom.select('#os-launchpad')
+  if (existing) {
+    existing.classList.remove('open')
+    setTimeout(() => existing.remove(), 300)
+    return
+  }
+
+  define pad = dom.create('div', { id: 'os-launchpad', className: 'os-launchpad' })
+  pad.innerHTML = `
+    <div class="lp-blur"></div>
+    <div class="lp-content">
+      <div class="lp-header">
+        <input type="text" class="lp-search" id="lp-search" placeholder="Search apps..." autocomplete="off">
+        <button class="lp-close" onclick="toggleLaunchpad()">✕</button>
+      </div>
+      <div class="lp-grid" id="lp-grid"></div>
+    </div>
+  `
+  document.body.appendChild(pad)
+  
+  /// Focus search after animation
+  setTimeout(() => {
+    pad.classList.add('open')
+    dom.select('#lp-search').focus()
+  }, 10)
+
+  define grid = dom.select('#lp-grid')
+
+  /// All ecosystem apps
+  define apps = [
+    { name: 'Axiom Studio', icon: '🧠', url: 'https://axiomstudio.dev', featured: true },
+    { name: 'TrustGen 3D', icon: '🎨', url: 'https://trustgen.design', featured: true },
+    { name: 'TrustVault', icon: '🔐', url: 'https://trustvault.studio', featured: true },
+    { name: 'Lume Language', icon: '💡', url: 'https://lume-lang.org', featured: true },
+    { name: 'TrustShield', icon: '🛡', url: 'https://trustshield.tech', isTrustShield: true },
+    { name: 'Trust Hub', icon: '🌐', url: 'https://trusthub.tlid.io' },
+    { name: 'LumeLine', icon: '🌊', url: 'https://lumeline.app' },
+    { name: 'The Arcade', icon: '🎮', url: 'https://darkwavegames.io', comingSoon: true },
+    { name: 'Bomber Golf', icon: '⛳', url: 'https://bombergolf.tlid.io', comingSoon: true },
+    { name: 'Pulse', icon: '📈', url: 'https://darkwavepulse.com' },
+    { name: 'TradeWorks AI', icon: '🤖', url: 'https://tradeworksai.io' },
+    { name: 'ORBIT Staffing', icon: '👥', url: 'https://orbitstaffing.io' },
+    { name: 'Signal Chat', icon: '💬', url: 'https://signalchat.tlid.io' },
+    { name: 'THE VOID', icon: '🕳', url: 'https://intothevoid.app' },
+    { name: 'Chronicles', icon: '📜', url: 'https://yourlegacy.io', comingSoon: true },
+    { name: 'Happy Eats', icon: '🍔', url: 'https://happyeats.app' }
+  ]
+
+  function renderApps(filterText) {
+    grid.innerHTML = ''
+    define filtered = apps.filter(a => a.name.toLowerCase().includes(filterText.toLowerCase()))
+    
+    for (const app of filtered) {
+      define item = dom.create('button', {
+        className: 'lp-app' + (app.featured ? ' featured' : '') + (app.comingSoon ? ' coming-soon' : ''),
+        onClick: () => {
+          if (app.comingSoon) return
+          if (app.isTrustShield && window.electronAPI && window.electronAPI.launchTrustShield) {
+            window.electronAPI.launchTrustShield()
+          } else if (window.electronAPI) {
+            window.electronAPI.openExternal(app.url)
+          } else {
+            window.open(app.url, '_blank')
+          }
+          toggleLaunchpad()
+        }
+      })
+      item.appendChild(dom.create('div', { className: 'lp-app-icon', text: app.icon }))
+      item.appendChild(dom.create('div', { className: 'lp-app-name', text: app.name }))
+      if (app.comingSoon) {
+        item.appendChild(dom.create('div', { className: 'lp-badge-soon', text: 'SOON' }))
+      }
+      grid.appendChild(item)
+    }
+  }
+
+  renderApps('')
+  dom.on('#lp-search', 'input', (e) => renderApps(e.target.value))
+}
+
+/// ── Auth Overlay ──
+function showAuthOverlay() {
+  define el = dom.select('#auth-overlay')
+  if (el) el.style.display = 'flex'
+}
+function hideAuthOverlay() {
+  define el = dom.select('#auth-overlay')
+  if (el) el.style.display = 'none'
+}
+function switchAuthTab(tab) {
+  dom.select('#atab-login').classList.toggle('active', tab === 'login')
+  dom.select('#atab-signup').classList.toggle('active', tab === 'signup')
+  dom.select('#auth-form-login').style.display = tab === 'login' ? 'block' : 'none'
+  dom.select('#auth-form-signup').style.display = tab === 'signup' ? 'block' : 'none'
+  dom.select('#auth-error').textContent = ''
+}
+async function handleAuth() {
+  define email = dom.select('#auth-email').value.trim()
+  define pass = dom.select('#auth-pass').value
+  if (!email || !pass) { dom.set_text('#auth-error', 'Email and password required.'); return }
+  define btn = dom.select('#auth-submit')
+  btn.disabled = true; btn.textContent = 'Signing in...'
+  try {
+    define res = await fetch(API_BASE + '/v1/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    })
+    define data = await res.json()
+    if (!res.ok) { dom.set_text('#auth-error', data.error || 'Login failed.'); btn.disabled = false; btn.textContent = 'Sign In'; return }
+    window.localStorage.setItem('axiom_token', data.token)
+    window.localStorage.setItem('axiom_tenant', JSON.stringify(data.tenant))
+    authToken.set(data.token)
+    currentUser.set(data.tenant)
+    hideAuthOverlay()
+    fetchUserProfile().then(() => updateProfileUI())
+    loadConversations()
+    navigateTo('home')
+  } catch (e) {
+    dom.set_text('#auth-error', 'Connection error.')
+    btn.disabled = false; btn.textContent = 'Sign In'
+  }
+}
+async function handleSignup() {
+  define name = dom.select('#auth-name').value.trim()
+  define email = dom.select('#auth-email2').value.trim()
+  define pass = dom.select('#auth-pass2').value
+  if (!email || !pass) { dom.set_text('#auth-error', 'Email and password required.'); return }
+  if (pass.length < 8) { dom.set_text('#auth-error', 'Password must be at least 8 characters.'); return }
+  try {
+    define res = await fetch(API_BASE + '/v1/auth/signup', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass, name: name })
+    })
+    define data = await res.json()
+    if (!res.ok) { dom.set_text('#auth-error', data.error || 'Signup failed.'); return }
+    window.localStorage.setItem('axiom_token', data.token)
+    window.localStorage.setItem('axiom_tenant', JSON.stringify(data.tenant))
+    authToken.set(data.token)
+    currentUser.set(data.tenant)
+    hideAuthOverlay()
+    fetchUserProfile().then(() => updateProfileUI())
+    loadConversations()
+    navigateTo('home')
+  } catch (e) {
+    dom.set_text('#auth-error', 'Connection error.')
+  }
+}
+
+/// ── Firebase OAuth (Google / GitHub) ──
+let firebaseLoaded = false
+let firebaseApp = null
+let firebaseAuthInstance = null
+
+async function ensureFirebase() {
+  if (firebaseLoaded) return
+  /// Dynamically load Firebase SDK from CDN
+  await new Promise((resolve, reject) => {
+    define s1 = document.createElement('script')
+    s1.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js'
+    s1.onload = resolve
+    s1.onerror = reject
+    document.head.appendChild(s1)
+  })
+  await new Promise((resolve, reject) => {
+    define s2 = document.createElement('script')
+    s2.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js'
+    s2.onload = resolve
+    s2.onerror = reject
+    document.head.appendChild(s2)
+  })
+  define config = {
+    apiKey: 'AIzaSyByHm_Zwo9NGZ3DyHtZ5_wCtHlLXcat23Q',
+    authDomain: 'darkwave-auth.firebaseapp.com',
+    projectId: 'darkwave-auth',
+    storageBucket: 'darkwave-auth.firebasestorage.app',
+    messagingSenderId: '41307406912',
+    appId: '1:41307406912:web:9a674f22472924b52a55a5'
+  }
+  firebaseApp = firebase.initializeApp(config)
+  firebaseAuthInstance = firebase.auth()
+  firebaseLoaded = true
+}
+
+async function handleGoogleLogin() {
+  dom.set_text('#auth-error', '')
+  try {
+    await ensureFirebase()
+    define provider = new firebase.auth.GoogleAuthProvider()
+    provider.addScope('email')
+    provider.addScope('profile')
+    define result = await firebaseAuthInstance.signInWithPopup(provider)
+    define idToken = await result.user.getIdToken()
+    define res = await fetch(API_BASE + '/v1/auth/firebase', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken })
+    })
+    define data = await res.json()
+    if (!res.ok) { dom.set_text('#auth-error', data.error || 'Google login failed.'); return }
+    window.localStorage.setItem('axiom_token', data.token)
+    window.localStorage.setItem('axiom_tenant', JSON.stringify(data.user))
+    authToken.set(data.token)
+    currentUser.set(data.user)
+    hideAuthOverlay()
+    fetchUserProfile().then(() => updateProfileUI())
+    loadConversations()
+    navigateTo('home')
+  } catch (e) {
+    dom.set_text('#auth-error', e.message || 'Google login failed.')
+  }
+}
+
+async function handleGitHubLogin() {
+  dom.set_text('#auth-error', '')
+  try {
+    await ensureFirebase()
+    define provider = new firebase.auth.GithubAuthProvider()
+    define result = await firebaseAuthInstance.signInWithPopup(provider)
+    define idToken = await result.user.getIdToken()
+    define res = await fetch(API_BASE + '/v1/auth/firebase', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken })
+    })
+    define data = await res.json()
+    if (!res.ok) { dom.set_text('#auth-error', data.error || 'GitHub login failed.'); return }
+    window.localStorage.setItem('axiom_token', data.token)
+    window.localStorage.setItem('axiom_tenant', JSON.stringify(data.user))
+    authToken.set(data.token)
+    currentUser.set(data.user)
+    hideAuthOverlay()
+    fetchUserProfile().then(() => updateProfileUI())
+    loadConversations()
+    navigateTo('home')
+  } catch (e) {
+    dom.set_text('#auth-error', e.message || 'GitHub login failed.')
+  }
+}
+
+/// ── Avatar Upload ──
+async function handleAvatarUpload(e) {
+  define file = e.target.files[0]
+  if (!file) return
+  define reader = new FileReader()
+  reader.onload = async (ev) => {
+    define base64 = ev.target.result
+    try {
+      define res = await fetch(API_BASE + '/v1/profile/avatar', {
+        method: 'POST', headers: getAuthHeaders(),
+        body: JSON.stringify({ image: base64 })
+      })
+      if (res.ok) {
+        define data = await res.json()
+        updateAvatarUI(data.avatarUrl || base64)
+      }
+    } catch (err) { console.log('Avatar upload failed') }
+  }
+  reader.readAsDataURL(file)
+}
+
+/// ── Profile UI Updates ──
+function updateProfileUI() {
+  define user = currentUser.get()
+  define profile = userProfile.get()
+  if (!user && !profile) return
+
+  let name = profile?.name || user?.name || user?.email || '?'
+  if (name.includes('Ronald')) name = 'Jason'
+  define email = profile?.email || user?.email || ''
+  define tier = profile?.tier || user?.tier || 'FREE'
+  define avatar = profile?.avatarUrl || null
+  define initial = (name[0] || '?').toUpperCase()
+
+  dom.set_text('#pm-name', name)
+  dom.set_text('#pm-email', email)
+  dom.set_text('#pm-tier', tier)
+  dom.set_text('#cs-user-name', name)
+
+  if (avatar) {
+    updateAvatarUI(avatar)
+  } else {
+    dom.set_text('#avatar-circle', initial)
+    dom.set_text('#pm-avatar', initial)
+  }
+}
+
+function updateAvatarUI(url) {
+  define circle = dom.select('#avatar-circle')
+  define pmAvatar = dom.select('#pm-avatar')
+  if (circle) { circle.textContent = ''; circle.style.backgroundImage = 'url(' + url + ')'; circle.style.backgroundSize = 'cover'; circle.style.backgroundPosition = 'center' }
+  if (pmAvatar) { pmAvatar.textContent = ''; pmAvatar.style.backgroundImage = 'url(' + url + ')'; pmAvatar.style.backgroundSize = 'cover'; pmAvatar.style.backgroundPosition = 'center' }
+}
+
+/// ── Conversation Loader ──
+async function loadConversations() {
+  define token = authToken.get()
+  if (!token) return
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations', { headers: getAuthHeaders() })
+    if (res.ok) {
+      define data = await res.json()
+      conversations.set(data.conversations || [])
+    }
+  } catch (e) { console.log('Conversations fetch failed') }
+}
+
+/// ── Update active dock item ──
+function updateDock() {
+  define page = currentPage.get()
+  dom.select_all('.dock-item').forEach(el => dom.remove_class(el, 'active'))
+  define active = dom.select('#dock-' + page)
+  if (active) dom.add_class(active, 'active')
+}
+
+/// Render current page
+function renderPage() {
+  define vp = dom.select('#main-viewport')
+  if (!vp) return
+  dom.clear(vp)
+  updateDock()
+
+  define page = currentPage.get()
+  if (page === 'home') renderHome(vp)
+  else if (page === 'chat') renderChat(vp)
+  else if (page === 'explore') renderExplore(vp)
+  else if (page === 'system') renderTrustCenter(vp)
+  else if (page === 'settings') renderSettings(vp)
+  else if (page === 'terms') renderTerms(vp)
+  else if (page === 'privacy') renderPrivacy(vp)
+  else if (page === 'admin') {
+    if (adminMode.get()) renderAdmin(vp)
+    else { currentPage.set('home'); renderHome(vp) }
+  }
+  else renderHome(vp)
+}
+
+/// ── Signal Chat ──
+function toggleSignalChat() {
+  dom.toggle_class('#signal-panel', 'open')
+}
+
+function sendSignalMsg() {
+  define input = dom.select('#signal-input')
+  define text_val = input.value.trim()
+  if (!text_val) return
+  input.value = ''
+
+  define msgArea = dom.select('#signal-messages')
+  if (!msgArea) return
+
+  define msg = dom.create('div', { className: 'signal-msg outgoing', text: text_val })
+  msgArea.appendChild(msg)
+  msgArea.scrollTop = msgArea.scrollHeight
+
+  /// Simulate response (replace with WebSocket in production)
+  setTimeout(() => {
+    define reply = dom.create('div', { className: 'signal-msg incoming' })
+    reply.innerHTML = '<div class="sender">SIGNAL</div>Message received. Signal Chat WebSocket will be connected in production.'
+    msgArea.appendChild(reply)
+    msgArea.scrollTop = msgArea.scrollHeight
+  }, 800)
+}
+
+/// ── Hallmark Generator ──
+function generateHallmark(name, issuer) {
+  define timestamp = new Date().toISOString()
+  define hashInput = name + '|' + issuer + '|' + timestamp
+  define chars = '0123456789abcdef'
+  let hash = ''
+  for (let i = 0; i < 64; i++) {
+    hash += chars[Math.floor(Math.random() * 16)]
+  }
+  return { name, issuer, timestamp, hash: hash.slice(0, 32), verified: true }
+}
+
+function renderHallmarkBadge(h) {
+  define badge = dom.create('div', { className: 'hallmark' })
+  badge.appendChild(dom.create('div', { className: 'hallmark-shield', text: '⛊' }))
+  define info = dom.create('div', { className: 'hallmark-info' })
+  info.appendChild(dom.create('div', { className: 'hallmark-name', text: h.name }))
+  info.appendChild(dom.create('div', { className: 'hallmark-hash', text: h.hash + '...' }))
+  info.appendChild(dom.create('div', { className: 'hallmark-issuer', text: h.issuer + ' · ' + h.timestamp.slice(0, 10) }))
+  badge.appendChild(info)
+  if (h.verified) badge.appendChild(dom.create('span', { className: 'hallmark-verified', text: '✓' }))
+  return badge
+}
+
+/// ── Legal Pages (Lume-Native) ──
+function renderTerms(container) {
+  define page = dom.create('div', { className: 'page' })
+  page.appendChild(dom.create('h2', { text: 'Terms of Service', styles: { fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.5rem' } }))
+  page.appendChild(dom.create('div', { className: 'card-badge', text: 'Effective: January 1, 2026', styles: { marginBottom: '1rem' } }))
+
+  define sections = [
+    { title: '1. Acceptance of Terms', body: 'By accessing or using Lume Cortex ("Service"), you agree to be bound by these Terms of Service. The Service is provided by DarkWave Studios LLC ("Company"). If you do not agree, do not use the Service.' },
+    { title: '2. Description of Service', body: 'Lume Cortex is a deterministic meta-operating system interface providing access to the Axiom cognitive kernel, knowledge spine, and Trust Layer safety framework. The Service processes queries through a 42-module deterministic pipeline.' },
+    { title: '3. User Accounts', body: 'You must provide accurate information when creating an account. You are responsible for maintaining the confidentiality of your credentials. API keys are provided upon registration and must be stored securely.' },
+    { title: '4. Acceptable Use', body: 'You may not use the Service to: (a) violate any law; (b) transmit malicious code; (c) attempt to circumvent the LDIR safety rulebook; (d) reverse-engineer the deterministic pipeline; (e) exceed your tier rate limits.' },
+    { title: '5. Intellectual Property', body: 'Lume, Axiom, Trust Layer, TrustShield, Synthetic Organisms, and related technologies are protected by five (5) provisional patents (US Patent Pending). All source code is compiled from the Lume programming language. DOI: 10.5281/zenodo.19430898.' },
+    { title: '6. Data & Privacy', body: 'Conversations are stored encrypted. We do not train AI models on your data. The deterministic architecture means your queries produce reproducible, auditable outputs. See our Privacy Policy for details.' },
+    { title: '7. Limitation of Liability', body: 'THE SERVICE IS PROVIDED "AS IS." DARKWAVE STUDIOS LLC SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING FROM USE OF THE SERVICE.' },
+    { title: '8. Contact', body: 'DarkWave Studios LLC · contact@darkwavestudios.com · trustshield.tech' }
+  ]
+  for (const s of sections) {
+    define section = dom.create('div', { styles: { marginBottom: '1rem' } })
+    section.appendChild(dom.create('h3', { text: s.title, styles: { fontSize: '0.82rem', fontWeight: '600', color: 'var(--cyan)', marginBottom: '0.3rem' } }))
+    section.appendChild(dom.create('p', { text: s.body, styles: { fontSize: '0.72rem', color: 'var(--t2)', lineHeight: '1.7' } }))
+    page.appendChild(section)
+  }
+  page.appendChild(dom.create('div', { text: '© 2026 DarkWave Studios LLC · All rights reserved', styles: { fontSize: '0.55rem', fontFamily: 'var(--mono)', color: 'var(--t3)', marginTop: '1.5rem' } }))
+  container.appendChild(page)
+}
+
+function renderPrivacy(container) {
+  define page = dom.create('div', { className: 'page' })
+  page.appendChild(dom.create('h2', { text: 'Privacy Policy', styles: { fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.5rem' } }))
+  page.appendChild(dom.create('div', { className: 'card-badge', text: 'Effective: January 1, 2026', styles: { marginBottom: '1rem' } }))
+
+  define sections = [
+    { title: '1. Information We Collect', body: 'Account data (name, email), conversation history, usage metrics, and API access logs. We do NOT collect biometric data, location data, or third-party tracking cookies.' },
+    { title: '2. How We Use Data', body: 'To provide the Service, enforce rate limits, generate usage analytics, and improve the deterministic knowledge spine. We never use your data to train probabilistic AI models.' },
+    { title: '3. Data Storage', body: 'All data is stored on encrypted servers. Conversations are encrypted at rest. The deterministic architecture ensures all outputs are reproducible and auditable via the Iris observation layer.' },
+    { title: '4. Third-Party Services', body: 'We use: Stripe (payments), Resend (transactional email), Twilio (SMS notifications), and TrustShield.tech (certificate verification). Each operates under their respective privacy policies.' },
+    { title: '5. Data Deletion', body: 'You may delete your account and all associated data at any time via Settings. Deletion is permanent and irreversible. Audit logs are retained for 90 days for compliance.' },
+    { title: '6. Trust Layer Certification', body: 'Lume Cortex operates under the Trust Layer protocol with Ed25519 certificate verification. All safety decisions are governed by the LDIR rulebook (32 rules, 4 tiers) and are fully deterministic.' },
+    { title: '7. Contact', body: 'Privacy inquiries: privacy@darkwavestudios.com · DarkWave Studios LLC' }
+  ]
+  for (const s of sections) {
+    define section = dom.create('div', { styles: { marginBottom: '1rem' } })
+    section.appendChild(dom.create('h3', { text: s.title, styles: { fontSize: '0.82rem', fontWeight: '600', color: 'var(--cyan)', marginBottom: '0.3rem' } }))
+    section.appendChild(dom.create('p', { text: s.body, styles: { fontSize: '0.72rem', color: 'var(--t2)', lineHeight: '1.7' } }))
+    page.appendChild(section)
+  }
+  page.appendChild(dom.create('div', { text: '© 2026 DarkWave Studios LLC · Protected by TrustShield.tech', styles: { fontSize: '0.55rem', fontFamily: 'var(--mono)', color: 'var(--t3)', marginTop: '1.5rem' } }))
+  container.appendChild(page)
+}

@@ -1,0 +1,243 @@
+/// ─── CHAT PAGE ──────────────────────────────────────────────
+/// Full conversation interface with Axiom agent personality
+/// Supports named agents: default is "Axiom", custom agents use their own name
+
+function renderChat(container) {
+  define layout = dom.create('div', { className: 'chat-layout' })
+  define agent = activeAgent.get()
+
+  /// ── Conversation Sidebar ──
+  define sidebar = dom.create('div', { className: 'chat-sidebar' })
+  define sHeader = dom.create('div', { className: 'chat-sidebar-header' })
+  sHeader.appendChild(dom.create('button', {
+    className: 'new-chat-btn', text: '+ New Conversation',
+    onClick: createNewConversation
+  }))
+  sidebar.appendChild(sHeader)
+
+  define convList = dom.create('div', { className: 'conv-list', id: 'chat-conv-list' })
+  sidebar.appendChild(convList)
+  layout.appendChild(sidebar)
+
+  /// ── Chat Main ──
+  define main = dom.create('div', { className: 'chat-main' })
+
+  define chatHeader = dom.create('div', { className: 'chat-header' })
+  define headerLeft = dom.create('div', { className: 'chat-header-left' })
+  headerLeft.appendChild(dom.create('span', { className: 'chat-agent-icon', text: agent.icon || '⚛' }))
+  headerLeft.appendChild(dom.create('span', { className: 'chat-header-title', id: 'active-chat-title', text: 'Select a conversation' }))
+  chatHeader.appendChild(headerLeft)
+  define headerBadge = dom.create('span', { className: 'chat-agent-badge', text: agent.name })
+  chatHeader.appendChild(headerBadge)
+  main.appendChild(chatHeader)
+
+  define messages = dom.create('div', { className: 'chat-messages', id: 'chat-msg-area' })
+  main.appendChild(messages)
+
+  /// Typing indicator
+  define typingEl = dom.create('div', { className: 'chat-typing', id: 'chat-typing', styles: { display: 'none' } })
+  typingEl.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span> <span class="typing-name">' + agent.name + ' is thinking...</span>'
+  main.appendChild(typingEl)
+
+  define inputBar = dom.create('div', { className: 'chat-input-bar', id: 'chat-input-bar', styles: { display: 'none' } })
+  define chatInput = dom.create('input', {
+    id: 'chat-text-input',
+    attrs: { type: 'text', placeholder: 'Ask ' + agent.name + ' anything...', autocomplete: 'off' },
+    onKeydown: (e) => { if (e.key === 'Enter') sendChatMessage() }
+  })
+  define chatSend = dom.create('button', { className: 'chat-send-btn', html: '→', onClick: sendChatMessage })
+  inputBar.appendChild(chatInput)
+  inputBar.appendChild(chatSend)
+  main.appendChild(inputBar)
+
+  layout.appendChild(main)
+  container.appendChild(layout)
+
+  /// Show welcome state or load active conversation
+  define active = activeConversation.get()
+  if (!active) {
+    showAxiomWelcome(messages)
+  }
+
+  /// Populate conversation list
+  populateChatSidebar()
+
+  /// If we have an active conversation, load it
+  if (active) loadChatConversation(active.id, active.title)
+}
+
+/// ── Axiom Welcome Screen ──
+function showAxiomWelcome(container) {
+  define agent = activeAgent.get()
+  define welcome = dom.create('div', { className: 'chat-welcome' })
+
+  define avatar = dom.create('div', { className: 'welcome-avatar' })
+  avatar.textContent = agent.icon || '⚛'
+  welcome.appendChild(avatar)
+
+  define title = dom.create('h2', { className: 'welcome-title' })
+  title.textContent = 'Hey, I\'m ' + agent.name + '!'
+  welcome.appendChild(title)
+
+  define subtitle = dom.create('p', { className: 'welcome-subtitle' })
+  subtitle.textContent = '181,282 topics across 149 domains — ask me anything.'
+  welcome.appendChild(subtitle)
+
+  /// Suggestion chips
+  define chips = dom.create('div', { className: 'welcome-chips' })
+  define suggestions = [
+    { text: 'What is Lume?', icon: '💎' },
+    { text: 'Explain smart contracts', icon: '₿' },
+    { text: 'NFL draft strategy', icon: '🏈' },
+    { text: 'How does compound interest work?', icon: '💰' },
+    { text: 'What is product-market fit?', icon: '📈' },
+    { text: 'Explain HIPAA compliance', icon: '⚕️' }
+  ]
+  for (const s of suggestions) {
+    define chip = dom.create('button', {
+      className: 'welcome-chip',
+      onClick: () => startConversationWith(s.text)
+    })
+    chip.innerHTML = '<span class="chip-icon">' + s.icon + '</span>' + escapeHtml(s.text)
+    chips.appendChild(chip)
+  }
+  welcome.appendChild(chips)
+
+  define footer = dom.create('div', { className: 'welcome-footer' })
+  footer.textContent = 'Zero hallucination · Deterministic responses · Trust Layer certified'
+  welcome.appendChild(footer)
+
+  container.appendChild(welcome)
+}
+
+/// Start a conversation from a suggestion chip
+async function startConversationWith(text) {
+  define token = authToken.get()
+  if (!token) { showAuthOverlay(); return }
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({ title: text.slice(0, 50) })
+    })
+    define data = await res.json()
+    if (!data.conversation) return
+    activeConversation.set(data.conversation)
+    await loadConversations()
+    renderPage()
+
+    /// Send the initial message
+    setTimeout(async () => {
+      define el = dom.select('#chat-text-input')
+      if (el) { el.value = text; sendChatMessage() }
+    }, 200)
+  } catch (e) {
+    console.log('Suggestion error:', e.message)
+  }
+}
+
+function populateChatSidebar() {
+  define list = dom.select('#chat-conv-list')
+  if (!list) return
+  dom.clear(list)
+
+  define convs = conversations.get()
+  define active = activeConversation.get()
+
+  for (const c of (convs || [])) {
+    define item = dom.create('div', {
+      className: 'conv-item' + (active && active.id === c.id ? ' active' : ''),
+      onClick: () => loadChatConversation(c.id, c.title)
+    })
+    item.appendChild(dom.create('div', { className: 'conv-item-title', text: c.title || 'Untitled' }))
+    item.appendChild(dom.create('div', { className: 'conv-item-meta', text: (c.turn_count || 0) + ' turns' }))
+    list.appendChild(item)
+  }
+}
+
+async function loadChatConversation(id, title) {
+  activeConversation.set({ id, title })
+  dom.set_text('#active-chat-title', title || 'Conversation')
+
+  define inputBar = dom.select('#chat-input-bar')
+  if (inputBar) inputBar.style.display = 'flex'
+
+  define msgArea = dom.select('#chat-msg-area')
+  if (!msgArea) return
+  dom.clear(msgArea)
+
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations/' + id, { headers: getAuthHeaders() })
+    define data = await res.json()
+    define turns = data.turns || []
+
+    /// If no turns yet, show agent greeting
+    if (turns.length === 0) {
+      define agent = activeAgent.get()
+      appendChatMsg('Hey! I\'m ' + agent.name + '. I have 181,282 topics across 149 knowledge domains ready to go. What can I help you with?', 'agent')
+    }
+
+    for (const t of turns) {
+      appendChatMsg(t.user_input, 'user')
+      appendChatMsg(t.agent_response, 'agent', t.register, t.total_ms)
+    }
+    msgArea.scrollTop = msgArea.scrollHeight
+  } catch (e) { console.log('Load conversation error') }
+
+  populateChatSidebar()
+  setTimeout(() => { const el = dom.select('#chat-text-input'); if (el) el.focus() }, 100)
+}
+
+function appendChatMsg(text_content, type, register, ms) {
+  define msgArea = dom.select('#chat-msg-area')
+  if (!msgArea) return
+  define agent = activeAgent.get()
+  define el = dom.create('div', { className: 'msg ' + type })
+  if (type === 'agent') {
+    define nameTag = '<div class="msg-sender"><span class="msg-agent-dot"></span>' + agent.name + '</div>'
+    el.innerHTML = nameTag + (register ? '<div class="register">' + register + '</div>' : '') + '<div class="msg-body">' + escapeHtml(text_content || '') + '</div>' + (ms ? '<div class="meta">' + Number(ms).toFixed(1) + 'ms</div>' : '')
+  } else {
+    el.textContent = text_content || ''
+  }
+  msgArea.appendChild(el)
+  msgArea.scrollTop = msgArea.scrollHeight
+}
+
+function escapeHtml(str) {
+  define d = document.createElement('div')
+  d.textContent = str
+  return d.innerHTML
+}
+
+function showTyping(show) {
+  define el = dom.select('#chat-typing')
+  if (el) el.style.display = show ? 'flex' : 'none'
+}
+
+async function sendChatMessage() {
+  define input = dom.select('#chat-text-input')
+  define text_val = input.value.trim()
+  define active = activeConversation.get()
+  if (!text_val || !active) return
+  input.value = ''
+
+  appendChatMsg(text_val, 'user')
+  showTyping(true)
+
+  try {
+    define res = await fetch(API_BASE + '/v1/conversations/' + active.id + '/speak', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({ input: text_val })
+    })
+    define data = await res.json()
+    showTyping(false)
+    if (data.error) {
+      appendChatMsg('Hmm, I ran into an issue: ' + data.error, 'agent')
+    } else {
+      appendChatMsg(data.response, 'agent', data.register, data.total_duration)
+    }
+    loadConversations()
+  } catch (e) {
+    showTyping(false)
+    appendChatMsg('I\'m having trouble connecting right now. Give me a moment and try again.', 'agent')
+  }
+}

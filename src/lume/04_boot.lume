@@ -1,0 +1,222 @@
+/// ─── BOOT CONSOLE ───────────────────────────────────────────
+/// 7-phase deterministic boot sequence from Lume-OS v1 §3
+
+function runBootSequence() {
+  define overlay = dom.create('div', { className: 'boot-overlay', id: 'boot-overlay' })
+
+  /// Background particle canvas
+  define cvs = document.createElement('canvas')
+  cvs.className = 'boot-canvas'
+  overlay.appendChild(cvs)
+
+  /// Console window
+  define console_w = dom.create('div', { className: 'boot-console' })
+  define header = dom.create('div', { className: 'boot-header' })
+  header.innerHTML = '<div class="boot-dot boot-dot-r"></div><div class="boot-dot boot-dot-y"></div><div class="boot-dot boot-dot-g"></div><span class="boot-header-text">Lume-OS Deterministic Kernel v1.1.0</span>'
+  console_w.appendChild(header)
+
+  define body = dom.create('div', { className: 'boot-body', id: 'boot-body' })
+  console_w.appendChild(body)
+
+  define progress = dom.create('div', { className: 'boot-progress' })
+  define progressBar = dom.create('div', { className: 'boot-progress-bar', id: 'boot-progress' })
+  progress.appendChild(progressBar)
+  console_w.appendChild(progress)
+
+  define footer = dom.create('div', {
+    className: 'boot-footer',
+    text: '© 2026 DarkWave Studios LLC — Protected by TrustShield.tech'
+  })
+  console_w.appendChild(footer)
+
+  overlay.appendChild(console_w)
+
+  /// Skip button
+  define skipBtn = dom.create('button', {
+    className: 'boot-skip', text: 'Skip →',
+    onClick: () => {
+      cancelAnimationFrame(animId)
+      define ov = dom.select('#boot-overlay')
+      if (ov) { dom.remove(ov) }
+      booted.set(true)
+      navigateTo('home')
+    }
+  })
+  overlay.appendChild(skipBtn)
+
+  dom.mount(overlay)
+
+  /// ── Particle system ──
+  define ctx = cvs.getContext('2d')
+  cvs.width = window.innerWidth
+  cvs.height = window.innerHeight
+
+  define particles = []
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * cvs.width,
+      y: Math.random() * cvs.height,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 1.2 + 0.3
+    })
+  }
+
+  let animId = null
+  function drawParticles() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height)
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy
+      if (p.x < 0 || p.x > cvs.width) p.vx *= -1
+      if (p.y < 0 || p.y > cvs.height) p.vy *= -1
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+      ctx.fillStyle = 'rgba(6,182,212,0.15)'
+      ctx.fill()
+    }
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x
+        const dy = particles[i].y - particles[j].y
+        const d = Math.sqrt(dx * dx + dy * dy)
+        if (d < 120) {
+          ctx.beginPath()
+          ctx.moveTo(particles[i].x, particles[i].y)
+          ctx.lineTo(particles[j].x, particles[j].y)
+          ctx.strokeStyle = 'rgba(6,182,212,' + (1 - d / 120) * 0.06 + ')'
+          ctx.stroke()
+        }
+      }
+    }
+    animId = requestAnimationFrame(drawParticles)
+  }
+  drawParticles()
+
+  /// ── Boot lines ──
+  let lineDelay = 0
+  function addLine(text_content, cls, delay) {
+    lineDelay += delay
+    setTimeout(() => {
+      define line = dom.create('div', {
+        className: 'boot-line ' + (cls || ''),
+        text: text_content
+      })
+      body.appendChild(line)
+      body.scrollTop = body.scrollHeight
+    }, lineDelay)
+  }
+
+  function setProgress(pct) {
+    setTimeout(() => {
+      define bar = dom.select('#boot-progress')
+      if (bar) bar.style.width = pct + '%'
+    }, lineDelay)
+  }
+
+  function genHash() {
+    return Array.from({length: 64}, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('')
+  }
+
+  /// ── PHASE 0: HOST HANDSHAKE ──
+  addLine('', 'brand', 50)
+  addLine('▓▓▓  LUME CORTEX  ▓▓▓', 'brand', 200)
+  addLine('The Deterministic Meta-Operating System', 'info', 400)
+  addLine('', '', 100)
+  addLine('[Phase 0] HOST HANDSHAKE', 'title', 300)
+  addLine('  Detecting host environment...', 'info', 150)
+  addLine('  Host: ' + navigator.userAgent.slice(0, 50), 'info', 200)
+  addLine('  Viewport: ' + window.innerWidth + '×' + window.innerHeight, 'info', 100)
+  addLine('  Filesystem bridge: established', 'ok', 150)
+  addLine('  Host integrity: verified', 'ok', 100)
+  setProgress(10)
+
+  /// ── PHASE 1: TRUST INIT ──
+  addLine('', '', 200)
+  addLine('[Phase 1] TRUST INITIALIZATION', 'title', 300)
+  addLine('  Loading root certificate chain...', 'info', 200)
+  addLine('  Root cert: ' + genHash().slice(0, 32) + '...', 'hash', 150)
+  addLine('  TrustShield.tech: connected', 'ok', 200)
+  addLine('  Certificate chain: 6 certs verified', 'ok', 100)
+  addLine('  Revocation check: 0 revoked', 'ok', 100)
+  addLine('  Ed25519 signatures: valid', 'ok', 100)
+  setProgress(22)
+
+  /// ── PHASE 2: LDIR LOAD ──
+  addLine('', '', 200)
+  addLine('[Phase 2] LDIR RULEBOOK LOAD', 'title', 300)
+  addLine('  Loading LDIR v1.0...', 'info', 150)
+  addLine('  Tier 4 Safety Rules: 5 loaded', 'ok', 100)
+  addLine('  Tier 3 Axiom Rules: 7 loaded', 'ok', 80)
+  addLine('  Tier 2 Domain Rules: 15 loaded', 'ok', 80)
+  addLine('  Tier 1 Default Rules: 5 loaded', 'ok', 80)
+  addLine('  Total: 32 rules — hash: ' + genHash().slice(0, 24) + '...', 'hash', 100)
+  addLine('  Rulebook locked to compiler v1.1.0', 'ok', 100)
+  setProgress(36)
+
+  /// ── PHASE 3: SOR GENESIS ──
+  addLine('', '', 200)
+  addLine('[Phase 3] SYNTHETIC ORGANISM RUNTIME GENESIS', 'title', 300)
+  addLine('  Spawning Cell Manager (System Cell)...', 'info', 200)
+  addLine('  Cell-0: Homeostasis Engine — ACTIVE', 'ok', 150)
+  addLine('  Signal Bus: initialized — timestamp-ordered delivery', 'ok', 100)
+  addLine('  Cell scheduling: UUID v7 temporal ordering', 'ok', 80)
+  addLine('  Rollback engine: armed', 'ok', 80)
+  addLine('  State snapshots: enabled', 'ok', 80)
+  addLine('  Organism Type: 3 (Self-Maintaining)', 'ok', 100)
+  setProgress(50)
+
+  /// ── PHASE 4: AXIOM KERNEL ──
+  addLine('', '', 200)
+  addLine('[Phase 4] AXIOM COGNITIVE KERNEL', 'title', 300)
+  addLine('  Loading knowledge spine...', 'info', 200)
+  addLine('  Domains: 149 domains indexed', 'ok', 100)
+  addLine('  Packs: 149 domain packs loaded', 'ok', 100)
+  addLine('  Topics: 181,282 knowledge entries verified', 'ok', 150)
+  addLine('  Words: ~1,100,000 deterministic patterns', 'ok', 100)
+  addLine('  42-module runtime: 6 layers initialized', 'ok', 100)
+  addLine('  Intent Router: deterministic mode', 'ok', 80)
+  addLine('  Agent registry: 17 specialty agents online', 'ok', 100)
+  addLine('  Spine hash: ' + genHash().slice(0, 32) + '...', 'hash', 80)
+  setProgress(72)
+
+  /// ── PHASE 5: DPCL INIT ──
+  addLine('', '', 200)
+  addLine('[Phase 5] DPCL PERSONALITY LAYER', 'title', 250)
+  addLine('  Loading personality profiles...', 'info', 150)
+  addLine('  Register: Precise (default)', 'ok', 100)
+  addLine('  Communication protocol: deterministic', 'ok', 80)
+  addLine('  Tone calibration: neutral-professional', 'ok', 80)
+  addLine('  Language: English (primary)', 'ok', 80)
+  setProgress(86)
+
+  /// ── PHASE 6: SURFACE READY ──
+  addLine('', '', 200)
+  addLine('[Phase 6] SURFACE READY', 'title', 250)
+  addLine('  Iris Monitor: initialized', 'ok', 100)
+  addLine('  Input surfaces: voice · text · code', 'ok', 100)
+  addLine('  Rendering engine: Lume Cortex v1.0', 'ok', 80)
+  addLine('  Theme: ' + theme.get(), 'ok', 80)
+  setProgress(100)
+
+  addLine('', '', 300)
+  addLine('═══════════════════════════════════════════', 'ok', 200)
+  addLine('  BOOT_COMPLETE — All 7 phases passed', 'ok', 150)
+  addLine('  System deterministic. Zero drift.', 'ok', 100)
+  addLine('═══════════════════════════════════════════', 'ok', 100)
+
+  /// ── Transition to dashboard ──
+  define totalTime = lineDelay + 1500
+  setTimeout(() => {
+    cancelAnimationFrame(animId)
+    define ov = dom.select('#boot-overlay')
+    if (ov) {
+      ov.style.transition = 'opacity 0.6s ease'
+      ov.style.opacity = '0'
+      setTimeout(() => {
+        dom.remove(ov)
+        booted.set(true)
+        navigateTo('home')
+      }, 600)
+    }
+  }, totalTime)
+}

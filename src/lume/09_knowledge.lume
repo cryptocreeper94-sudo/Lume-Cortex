@@ -1,0 +1,291 @@
+/// ─── SETTINGS PAGE ─────────────────────────────────────────
+/// Profile, account, preferences, and system info
+
+function renderSettings(container) {
+  define page = dom.create('div', { className: 'page' })
+
+  /// Profile Card
+  define profileCard = dom.create('div', { className: 'profile-card' })
+  define user = currentUser.get()
+  define profile = userProfile.get()
+  define name = profile?.name || user?.name || user?.email || 'Unknown'
+  define email = profile?.email || user?.email || ''
+  define tier = profile?.tier || user?.tier || 'FREE'
+  define initial = (name[0] || '?').toUpperCase()
+  define avatar = profile?.avatarUrl || null
+
+  define avatarEl = dom.create('div', {
+    className: 'profile-avatar-lg', id: 'settings-avatar',
+    text: avatar ? '' : initial,
+    onClick: () => { dom.select('#avatar-file-input').click() }
+  })
+  if (avatar) {
+    avatarEl.style.backgroundImage = 'url(' + avatar + ')'
+    avatarEl.style.backgroundSize = 'cover'
+    avatarEl.style.backgroundPosition = 'center'
+  }
+  profileCard.appendChild(avatarEl)
+
+  define details = dom.create('div', { className: 'profile-details' })
+  details.appendChild(dom.create('h3', { text: name }))
+  details.appendChild(dom.create('div', { className: 'email', text: email }))
+  define tierBadge = dom.create('div', { styles: {
+    display: 'inline-block', marginTop: '0.3rem', fontSize: '0.5rem', fontFamily: 'var(--mono)',
+    padding: '0.15rem 0.5rem', borderRadius: '999px', background: 'rgba(6,182,212,0.08)',
+    color: 'var(--cyan)', border: '1px solid rgba(6,182,212,0.15)', textTransform: 'uppercase', letterSpacing: '0.06em'
+  }, text: tier })
+  details.appendChild(tierBadge)
+  profileCard.appendChild(details)
+  page.appendChild(profileCard)
+
+  /// Preferences Section
+  define prefsSection = dom.create('div', { className: 'settings-section' })
+  prefsSection.appendChild(dom.create('div', { className: 'settings-label', text: 'Preferences' }))
+
+  /// Location row
+  define locRow = dom.create('div', { className: 'settings-row' })
+  locRow.appendChild(dom.create('span', { className: 'settings-row-label', text: 'Location (Zip/City)' }))
+  
+  define locInputContainer = dom.create('div', { styles: { display: 'flex', gap: '0.5rem', alignItems: 'center' } })
+  define locInput = dom.create('input', {
+    attrs: { type: 'text', placeholder: 'e.g. 90210 or NYC' },
+    styles: { background: 'var(--card)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: 'var(--t1)', fontSize: '0.72rem', fontFamily: 'var(--sans)', outline: 'none', width: '130px' }
+  })
+  
+  try {
+    define savedLoc = window.localStorage.getItem('cortex-location')
+    if (savedLoc) locInput.value = savedLoc
+  } catch(e) {}
+  
+  define locSaveBtn = dom.create('button', {
+    text: 'Save',
+    styles: { background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.15)', borderRadius: '8px', padding: '0.35rem 0.6rem', color: 'var(--cyan)', cursor: 'pointer', fontSize: '0.65rem', fontFamily: 'var(--sans)', fontWeight: '600' },
+    onClick: () => {
+      window.localStorage.setItem('cortex-location', locInput.value.trim())
+      alert('Location saved! Widgets will now use this location.')
+    }
+  })
+  
+  locInputContainer.appendChild(locInput)
+  locInputContainer.appendChild(locSaveBtn)
+  locRow.appendChild(locInputContainer)
+  prefsSection.appendChild(locRow)
+
+  /// Theme toggle row
+  define themeRow = dom.create('div', { className: 'settings-row' })
+  themeRow.appendChild(dom.create('span', { className: 'settings-row-label', text: 'Theme' }))
+  define themeToggle = dom.create('button', {
+    text: theme.get() === 'dark' ? '☀ Switch to Light' : '☾ Switch to Dark',
+    styles: { background: 'var(--card)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '0.35rem 0.8rem', color: 'var(--t2)', cursor: 'pointer', fontSize: '0.7rem', fontFamily: 'var(--sans)' },
+    onClick: () => {
+      toggleTheme()
+      define btn = dom.select('#theme-btn')
+      if (btn) btn.innerHTML = theme.get() === 'dark' ? '☀' : '☾'
+      renderPage()
+    }
+  })
+  themeRow.appendChild(themeToggle)
+  prefsSection.appendChild(themeRow)
+
+  /// SMS Opt-In row
+  define smsRow = dom.create('div', { styles: { padding: '0.75rem 0', borderBottom: '1px solid var(--t4)' } })
+  smsRow.appendChild(dom.create('span', { className: 'settings-row-label', text: 'SMS Notifications', styles: { display: 'block', marginBottom: '0.4rem' } }))
+
+  define smsPhoneRow = dom.create('div', { styles: { display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.4rem' } })
+  define smsInput = dom.create('input', {
+    id: 'sms-phone-input',
+    attrs: { type: 'tel', placeholder: '+1 (555) 555-5555', autocomplete: 'tel' },
+    styles: { flex: '1', background: 'var(--card)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '0.45rem 0.6rem', color: 'var(--t1)', fontSize: '0.72rem', fontFamily: 'var(--sans)', outline: 'none', maxWidth: '220px' }
+  })
+  smsPhoneRow.appendChild(smsInput)
+
+  define smsSaveBtn = dom.create('button', {
+    text: 'Save',
+    styles: { background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.15)', borderRadius: '8px', padding: '0.4rem 0.75rem', color: 'var(--cyan)', cursor: 'pointer', fontSize: '0.65rem', fontFamily: 'var(--sans)', fontWeight: '600' },
+    onClick: () => { handleSmsOptIn() }
+  })
+  smsPhoneRow.appendChild(smsSaveBtn)
+  smsRow.appendChild(smsPhoneRow)
+
+  define smsCheckRow = dom.create('label', { styles: { display: 'flex', alignItems: 'flex-start', gap: '0.4rem', cursor: 'pointer' } })
+  define smsCheck = dom.create('input', {
+    id: 'sms-opt-in-check',
+    attrs: { type: 'checkbox' },
+    styles: { marginTop: '0.15rem', accentColor: 'var(--cyan)' }
+  })
+  smsCheckRow.appendChild(smsCheck)
+  smsCheckRow.appendChild(dom.create('span', {
+    styles: { fontSize: '0.55rem', color: 'var(--t3)', lineHeight: '1.5' },
+    text: 'I agree to receive SMS notifications from Lume Cortex (DarkWave Studios LLC). Message & data rates may apply. Reply STOP to opt out at any time. Frequency varies. View our Privacy Policy and Terms of Service for details.'
+  }))
+  smsRow.appendChild(smsCheckRow)
+  prefsSection.appendChild(smsRow)
+
+  /// Email notifications toggle
+  define emailRow = dom.create('div', { className: 'settings-row' })
+  emailRow.appendChild(dom.create('span', { className: 'settings-row-label', text: 'Email Notifications' }))
+  define emailToggle = dom.create('button', {
+    id: 'email-notif-toggle',
+    text: 'Enabled',
+    styles: { background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '8px', padding: '0.35rem 0.8rem', color: 'var(--green)', cursor: 'pointer', fontSize: '0.65rem', fontFamily: 'var(--sans)', fontWeight: '600' },
+    onClick: () => {
+      define btn = dom.select('#email-notif-toggle')
+      if (btn.textContent === 'Enabled') {
+        btn.textContent = 'Disabled'
+        btn.style.background = 'var(--card)'
+        btn.style.borderColor = 'var(--glass-border)'
+        btn.style.color = 'var(--t3)'
+      } else {
+        btn.textContent = 'Enabled'
+        btn.style.background = 'rgba(34,197,94,0.08)'
+        btn.style.borderColor = 'rgba(34,197,94,0.15)'
+        btn.style.color = 'var(--green)'
+      }
+    }
+  })
+  emailRow.appendChild(emailToggle)
+  prefsSection.appendChild(emailRow)
+  page.appendChild(prefsSection)
+
+  /// Billing Section
+  define billingSection = dom.create('div', { className: 'settings-section' })
+  billingSection.appendChild(dom.create('div', { className: 'settings-label', text: 'Plan & Billing' }))
+
+  define tierGrid = dom.create('div', { className: 'tier-grid' })
+  define tiers = [
+    { name: 'Free', price: '$0', interval: 'forever', features: ['100 queries/day', '5 conversations', 'Core Knowledge Agent', 'Community support'], id: 'free' },
+    { name: 'Professional', price: '$29', interval: '/month', features: ['Unlimited queries', 'Unlimited conversations', 'All 11 specialty agents', 'Image generation', 'Priority support', 'API access'], id: 'professional' },
+    { name: 'Enterprise', price: '$99', interval: '/month', features: ['Everything in Pro', 'Custom agents', 'Dedicated capacity', 'SLA guarantee', 'SSO integration', 'Audit logs', 'Phone support'], id: 'enterprise' }
+  ]
+  for (const t of tiers) {
+    define card = dom.create('div', { className: 'tier-card' + (t.id === tier.toLowerCase() ? ' current' : '') })
+    card.appendChild(dom.create('div', { className: 'tier-name', text: t.name }))
+    card.appendChild(dom.create('div', { className: 'tier-price', text: t.price }))
+    card.appendChild(dom.create('div', { className: 'tier-price-sub', text: t.interval }))
+    define featureList = dom.create('ul', { className: 'tier-features' })
+    for (const f of t.features) {
+      featureList.appendChild(dom.create('li', { text: f }))
+    }
+    card.appendChild(featureList)
+
+    define isCurrent = t.id === tier.toLowerCase()
+    define upgradeBtn = dom.create('button', {
+      className: 'tier-upgrade-btn',
+      text: isCurrent ? 'Current Plan' : 'Upgrade',
+      attrs: isCurrent ? { disabled: 'true' } : {},
+      onClick: isCurrent ? null : () => { handleUpgrade(t.id) }
+    })
+    card.appendChild(upgradeBtn)
+    tierGrid.appendChild(card)
+  }
+  billingSection.appendChild(tierGrid)
+  page.appendChild(billingSection)
+
+  /// Hallmarks Section
+  define hallmarkSection = dom.create('div', { className: 'settings-section' })
+  hallmarkSection.appendChild(dom.create('div', { className: 'settings-label', text: 'Trust Layer Hallmarks' }))
+
+  define cortexHallmark = generateHallmark('Lume Cortex v1.0', 'TrustShield.tech')
+  define axiomHallmark = generateHallmark('Axiom Cognitive Kernel', 'DarkWave Studios LLC')
+  define trustHallmark = generateHallmark('Trust Layer Certificate', 'TrustShield.tech')
+
+  define hallmarkList = dom.create('div', { styles: { display: 'flex', flexDirection: 'column', gap: '0.5rem' } })
+  hallmarkList.appendChild(renderHallmarkBadge(cortexHallmark))
+  hallmarkList.appendChild(renderHallmarkBadge(axiomHallmark))
+  hallmarkList.appendChild(renderHallmarkBadge(trustHallmark))
+  hallmarkSection.appendChild(hallmarkList)
+  page.appendChild(hallmarkSection)
+
+  /// System Info Section
+  define sysSection = dom.create('div', { className: 'settings-section' })
+  sysSection.appendChild(dom.create('div', { className: 'settings-label', text: 'System Information' }))
+
+  define sysInfo = [
+    { label: 'Product', value: 'Lume Cortex v1.0' },
+    { label: 'Domain', value: 'lume-cortex.com' },
+    { label: 'Runtime', value: 'Lume v1.1.0 · Cortex Edition' },
+    { label: 'Compiler', value: 'Lume Compiler v0.8.1' },
+    { label: 'Architecture', value: 'Zero-dependency · Deterministic' },
+    { label: 'Knowledge Spine', value: '181,282 topics · 149 domains' },
+    { label: 'LDIR Rulebook', value: '32 rules · 4 tiers' },
+    { label: 'Trust Protocol', value: 'TrustShield.tech · Ed25519' },
+    { label: 'Patent', value: 'US Patent Pending (5 provisionals)' },
+    { label: 'DOI', value: '10.5281/zenodo.19430898' }
+  ]
+  for (const s of sysInfo) {
+    define row = dom.create('div', { className: 'settings-row' })
+    row.appendChild(dom.create('span', { className: 'settings-row-label', text: s.label }))
+    row.appendChild(dom.create('span', { className: 'settings-row-value', text: s.value }))
+    sysSection.appendChild(row)
+  }
+  page.appendChild(sysSection)
+
+  /// About Section
+  define aboutSection = dom.create('div', { className: 'settings-section' })
+  aboutSection.appendChild(dom.create('div', { className: 'settings-label', text: 'About' }))
+  aboutSection.appendChild(dom.create('div', {
+    styles: { fontSize: '0.72rem', color: 'var(--t2)', lineHeight: '1.7' },
+    html: 'Lume Cortex is the control surface of <strong>Lume-OS</strong> — a deterministic meta-operating system built on the Lume programming language. It provides a unified interface for the Axiom cognitive kernel, Synthetic Organism Runtime, Trust Layer, and LDIR safety framework.<br><br>© 2026 DarkWave Studios LLC · <a href="https://trustshield.tech">trustshield.tech</a> · <a href="https://lume-cortex.com">lume-cortex.com</a>'
+  }))
+  page.appendChild(aboutSection)
+
+  container.appendChild(page)
+}
+
+/// ── Stripe Upgrade Handler ──
+async function handleUpgrade(targetTier) {
+  try {
+    define res = await fetch(API_BASE + '/v1/billing/checkout', {
+      method: 'POST', headers: getAuthHeaders(),
+      body: JSON.stringify({
+        tier: targetTier,
+        success_url: window.location.origin + '/#settings',
+        cancel_url: window.location.origin + '/#settings'
+      })
+    })
+    define data = await res.json()
+    if (data.url) window.location.href = data.url
+  } catch (e) { console.log('Upgrade error:', e.message) }
+}
+
+/// ── SMS Opt-In Handler (A2P 10DLC Compliant) ──
+async function handleSmsOptIn() {
+  define check = dom.select('#sms-opt-in-check')
+  define phoneInput = dom.select('#sms-phone-input')
+  define phone = phoneInput ? phoneInput.value.trim() : ''
+
+  if (!check || !check.checked) {
+    alert('Please check the consent box to opt in to SMS notifications.')
+    return
+  }
+  if (!phone || phone.length < 10) {
+    alert('Please enter a valid phone number.')
+    return
+  }
+
+  define user = currentUser.get()
+  define profile = userProfile.get()
+
+  try {
+    define res = await fetch(API_BASE + '/api/sms/optin', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: profile?.name || user?.name || 'User',
+        phone: phone,
+        email: profile?.email || user?.email || '',
+        consent: true,
+        consentTimestamp: new Date().toISOString(),
+        consentSource: 'lume-cortex-settings'
+      })
+    })
+    define data = await res.json()
+    if (data.success) {
+      alert('SMS notifications enabled! Check your phone for a confirmation text.')
+    } else {
+      alert('Error: ' + (data.error || 'Could not enable SMS'))
+    }
+  } catch (e) {
+    console.log('SMS opt-in error:', e.message)
+    alert('Could not connect to server. Please try again.')
+  }
+}
