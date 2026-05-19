@@ -12,7 +12,7 @@
  *   - show X → console.log(X)
  *   - Preserves all Lume stdlib calls (dom, state, text, math, list)
  */
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execSync } from 'node:child_process'
@@ -321,6 +321,7 @@ console.log(`  Output: ${distPath}`)
 const appCode = transformLume(source)
 const bundle = STDLIB + appCode + FOOTER
 
+mkdirSync(dirname(distPath), { recursive: true })
 writeFileSync(distPath, bundle, 'utf-8')
 console.log(`  ✓ Bundle written: ${(bundle.length / 1024).toFixed(1)} KB`)
 
