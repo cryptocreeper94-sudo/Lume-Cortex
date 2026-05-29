@@ -4,7 +4,7 @@
 ///
 ///  Architecture: Lume-OS v1 + v2 Zenodo Papers
 ///  Kernel: Axiom (181,282 topics, 149 domains, 42-module runtime)
-///  Processes: Synthetic Organisms (Type 0-5)
+///  Processes: Deterministic Engine (Tier 0-5)
 ///  Safety: LDIR v1.0 (31 rules, 4 tiers)
 ///  Identity: Trust Layer + TrustShield
 ///

@@ -160,24 +160,24 @@ function renderWeatherWidget(card) {
   card.appendChild(wrap)
 }
 
-/// ── Organisms Widget ──
+/// ⚙ Deterministic Engine Widget ⚙
 function renderOrganismsWidget(card) {
-  define wrap = dom.create('div', { className: 'org-widget' })
-  define header = dom.create('div', { className: 'org-header' })
+  define wrap = dom.create('div', { className: 'engine-widget' })
+  define header = dom.create('div', { className: 'engine-header' })
   header.appendChild(dom.create('span', { text: '⚙ Deterministic Engine', styles: { fontWeight: '700', fontSize: '0.78rem' } }))
-  header.appendChild(dom.create('span', { className: 'org-pulse' }))
+  header.appendChild(dom.create('span', { className: 'engine-pulse' }))
   wrap.appendChild(header)
 
   define orgs = [
-    { name: 'Axiom Core', type: 'Type-4', status: 'metabolizing', color: 'var(--cyan)' },
-    { name: 'LDIR Guardian', type: 'Type-3', status: 'active', color: 'var(--green)' },
-    { name: 'Knowledge Spine', type: 'Type-5', status: 'dividing', color: 'var(--purple)' },
-    { name: 'Trust Sentinel', type: 'Type-2', status: 'hibernating', color: 'var(--t3)' }
+    { name: 'Axiom Core', type: 'Tier-4', status: 'processing', color: 'var(--cyan)' },
+    { name: 'LDIR Guardian', type: 'Tier-3', status: 'active', color: 'var(--green)' },
+    { name: 'Knowledge Spine', type: 'Tier-5', status: 'scaling', color: 'var(--purple)' },
+    { name: 'Trust Sentinel', type: 'Tier-2', status: 'standby', color: 'var(--t3)' }
   ]
   define orgGrid = dom.create('div', { className: 'org-grid' })
   for (const o of orgs) {
     define orgCard = dom.create('div', { className: 'org-card' })
-    define dot = dom.create('div', { className: 'org-dot' + (o.status === 'hibernating' ? '' : ' org-dot-alive') })
+    define dot = dom.create('div', { className: 'org-dot' + (o.status === 'standby' ? '' : ' org-dot-alive') })
     dot.style.background = o.color
     orgCard.appendChild(dot)
     define info = dom.create('div', { className: 'org-info' })

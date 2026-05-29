@@ -155,14 +155,14 @@ function runBootSequence() {
 
   /// ── PHASE 3: SOR GENESIS ──
   addLine('', '', 200)
-  addLine('[Phase 3] SYNTHETIC ORGANISM RUNTIME GENESIS', 'title', 300)
+  addLine('[Phase 3] DETERMINISTIC ENGINE RUNTIME', 'title', 300)
   addLine('  Spawning Cell Manager (System Cell)...', 'info', 200)
   addLine('  Cell-0: Homeostasis Engine — ACTIVE', 'ok', 150)
   addLine('  Signal Bus: initialized — timestamp-ordered delivery', 'ok', 100)
   addLine('  Cell scheduling: UUID v7 temporal ordering', 'ok', 80)
   addLine('  Rollback engine: armed', 'ok', 80)
   addLine('  State snapshots: enabled', 'ok', 80)
-  addLine('  Organism Type: 3 (Self-Maintaining)', 'ok', 100)
+  addLine('  Agent Tier: 3 (Self-Maintaining)', 'ok', 100)
   setProgress(50)
 
   /// ── PHASE 4: AXIOM KERNEL ──

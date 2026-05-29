@@ -225,7 +225,7 @@ function renderSettings(container) {
   aboutSection.appendChild(dom.create('div', { className: 'settings-label', text: 'About' }))
   aboutSection.appendChild(dom.create('div', {
     styles: { fontSize: '0.72rem', color: 'var(--t2)', lineHeight: '1.7' },
-    html: 'Lume Cortex is the control surface of <strong>Lume-OS</strong> — a deterministic meta-operating system built on the Lume programming language. It provides a unified interface for the Axiom cognitive kernel, Synthetic Organism Runtime, Trust Layer, and LDIR safety framework.<br><br>© 2026 DarkWave Studios LLC · <a href="https://trustshield.tech">trustshield.tech</a> · <a href="https://lume-cortex.com">lume-cortex.com</a>'
+    html: 'Lume Cortex is the control surface of <strong>Lume-OS</strong> - a deterministic meta-operating system built on the Lume programming language. It provides a unified interface for the Axiom cognitive kernel, Deterministic Engine Runtime, Trust Layer, and LDIR safety framework.<br><br>c 2026 DarkWave Studios LLC · <a href="https://trustshield.tech">trustshield.tech</a> · <a href="https://lume-cortex.com">lume-cortex.com</a>'
   }))
   page.appendChild(aboutSection)
 
