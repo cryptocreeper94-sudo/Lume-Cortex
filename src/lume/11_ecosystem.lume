@@ -4,7 +4,7 @@
 
 /// Ecosystem App Registry
 define ECOSYSTEM_APPS = [
-  { id: 'cortex',      name: 'Lume Cortex',     icon: '⬡', domain: 'lume-cortex.tlid.io',   tier: 'free',  category: 'os',       status: 'online',  desc: 'Deterministic Meta-OS' },
+  { id: 'cortex',      name: 'Lume Cortex',     icon: '⬡', domain: 'lume-cortex.com',      tier: 'free',  category: 'os',       status: 'online',  desc: 'Deterministic Meta-OS' },
   { id: 'axiom',       name: 'Axiom Studio',    icon: '🧠', domain: 'axiomstudio.dev',       tier: 'paid',  category: 'dev',      status: 'preview', desc: 'Multi-Agent AI IDE' },
   { id: 'trustgen',    name: 'TrustGen 3D',     icon: '🎨', domain: 'trustgen.design',       tier: 'paid',  category: 'creative', status: 'preview', desc: '3D Intelligence Studio' },
   { id: 'trustvault',  name: 'TrustVault',      icon: '🔐', domain: 'trustvault.studio',     tier: 'paid',  category: 'security', status: 'preview', desc: 'AES-256 Media Vault' },
