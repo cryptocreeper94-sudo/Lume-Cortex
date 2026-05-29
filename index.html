@@ -538,11 +538,12 @@
       // Keywords to intercept
       const text = (target.textContent || '').toLowerCase();
       const href = (target.href || '').toLowerCase();
-      const isAction = target.tagName === 'BUTTON' || 
-                       href.includes('/buy') || 
+      const isAction = href.includes('/buy') || 
                        href.includes('.exe') || 
                        href.includes('.apk') ||
-                       ['save', 'export', 'download', 'deploy', 'generate', 'buy', 'checkout'].some(k => text.includes(k));
+                       href.includes('/checkout') ||
+                       href.includes('/presale') ||
+                       ['save', 'export', 'download', 'deploy', 'generate', 'buy', 'checkout', 'claim', 'purchase'].some(k => text.includes(k));
       
       if (isAction) {
         e.preventDefault();
