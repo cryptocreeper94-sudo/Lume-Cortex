@@ -347,6 +347,25 @@
       .tagline{font-size:.95rem}
     }
   </style>
+
+  <!-- UNIVERSAL PWA BACK-BUTTON PATCH -->
+  <script>
+    window.addEventListener('load', function() {
+      if (window.history && window.history.pushState) {
+        window.history.pushState({ pwa: true }, '');
+        window.addEventListener('popstate', function(e) {
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27 }));
+          const modals = document.querySelectorAll('.modal, [role="dialog"], .overlay, .popup, [data-state="open"]');
+          modals.forEach(m => {
+            const btn = m.querySelector('button.close, [aria-label="Close"], .close-button, [data-dismiss="modal"]');
+            if (btn && typeof btn.click === 'function') btn.click();
+          });
+          window.history.pushState({ pwa: true }, '');
+        });
+      }
+    });
+  </script>
+
 </head>
 <body>
   <div class="bg-canvas"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
