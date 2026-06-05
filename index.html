@@ -4,6 +4,10 @@
 
 <style id="glass-blackout-style">
   /* GLASS BLACKOUT STYLES */
+  html.gb-active, html.gb-active body {
+    overflow: hidden !important;
+    height: 100% !important;
+  }
   #glass-blackout-overlay {
     position: fixed;
     inset: 0;
@@ -254,6 +258,9 @@
 
 
 
+
+
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cortex — Coming Soon | DarkWave Studios</title>
@@ -493,11 +500,21 @@
 
 
 
+
+
+
+
+<!-- Made with Lume -->
+<a href="https://lume-lang.org" target="_blank" rel="noopener" id="lume-badge" style="position:fixed;bottom:12px;right:12px;display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(2,6,23,0.88);border:1px solid rgba(34,211,238,0.3);border-radius:20px;color:#22d3ee;font-size:11px;font-weight:700;text-decoration:none;z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all 0.3s;font-family:Inter,system-ui,sans-serif;letter-spacing:0.02em;box-shadow:0 2px 12px rgba(0,0,0,0.3);">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  Made with Lume
+</a>
+
 <div id="glass-blackout-overlay">
   <div class="gb-modal">
-    <div class="gb-badge">🚀 Launching Soon <span style="opacity:0.5; margin:0 8px;">|</span> 100% Free & Open</div>
+    <div class="gb-badge">🔒 Ecosystem Unlock <span style="opacity:0.5; margin:0 8px;">|</span> Patent Pending</div>
     <h1 class="gb-title">Lume Cortex</h1>
-    <p class="gb-subtitle">The deterministic meta-operating system. 17 highly specialized AI agents in a zero-latency workspace. Free forever — built with Lume, made for everyone.</p>
+    <p class="gb-subtitle">The deterministic meta-operating system. 17 highly specialized AI agents in a zero-latency workspace.</p>
     
     <div class="gb-timer">
       <div class="gb-time-box"><div class="num" id="gb-days">28</div><div class="lbl">Days</div></div>
@@ -507,11 +524,11 @@
     </div>
     
     <div class="gb-ctas">
-      <button id="gb-enter-demo" class="gb-btn-primary">
+      <button class="gb-btn-primary" onclick="enterDemoMode()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-        Preview Demo
+        Enter Demo Mode
       </button>
-      <a href="https://darkwavestudios.io" class="gb-btn-secondary">🌐 Learn More</a>
+      <a href="https://dwtl.io/presale" class="gb-btn-secondary">Join $SIG Presale</a>
     </div>
 
     <div class="gb-free-banner">
@@ -534,13 +551,36 @@
 <div id="gb-toast-container"></div>
 
 <script>
-  // Countdown Timer
+  // Native/PWA/Admin Bypass
   (function(){
+    var ua = navigator.userAgent.toLowerCase();
+    var isNative = ua.indexOf(' electron/') > -1 || ua.indexOf('capacitor') > -1 || ua.indexOf('wv') > -1;
+    var isPwa = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+
+    if (window.location.search.includes('admin_unlock=42')) {
+      localStorage.setItem('gb_admin_override', 'true');
+    }
+    var isWhitelisted = localStorage.getItem('gb_admin_override') === 'true';
+
+    if (isNative || isPwa || isWhitelisted) {
+      var overlay = document.getElementById('glass-blackout-overlay');
+      if (overlay) overlay.style.display = 'none';
+      return;
+    }
+
+    // Lock body scroll while gate is visible
+    document.documentElement.classList.add('gb-active');
+
+    // Countdown Timer
     const targetDate = new Date('June 23, 2026 09:00:00').getTime();
     function update() {
       const now = new Date().getTime();
       const dist = targetDate - now;
-      if (dist < 0) return;
+      if (dist < 0) {
+        var overlay = document.getElementById('glass-blackout-overlay');
+        if (overlay) overlay.classList.add('hidden');
+        return;
+      }
       document.getElementById('gb-days').innerText = Math.floor(dist / (1000 * 60 * 60 * 24));
       document.getElementById('gb-hours').innerText = Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
       document.getElementById('gb-mins').innerText = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
@@ -554,7 +594,18 @@
   window.enterDemoMode = function() {
     document.getElementById('glass-blackout-overlay').classList.add('hidden');
     document.getElementById('gb-demo-indicator').classList.add('visible');
+    document.documentElement.classList.remove('gb-active');
     
+    // Prevent typing in Demo Mode
+    document.body.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+        if (e.key === 'Escape') return; // Allow Escape for modals
+        e.preventDefault();
+        e.stopPropagation();
+        showToast('🔒 Input disabled in Preview Mode');
+      }
+    }, true);
+
     // Intercept clicks
     document.body.addEventListener('click', function(e) {
       // Find closest anchor or button
@@ -562,24 +613,27 @@
       if (!target) return;
       
       // Allow specific navigation or free links
-      if (target.closest('.gb-modal')) return;
-      if (target.href && (target.href.includes('chronoverse') || target.href.includes('trustshield') || target.href.startsWith('#'))) return;
+      if (target.closest('.gb-modal') || target.closest('#gb-demo-indicator')) return;
       
       // Keywords to intercept
       const text = (target.textContent || '').toLowerCase();
       const href = (target.href || '').toLowerCase();
-      const isAction = href.includes('/buy') || 
+      const isAction = target.tagName === 'BUTTON' || 
+                       href.includes('/buy') || 
                        href.includes('.exe') || 
                        href.includes('.apk') ||
                        href.includes('/checkout') ||
-                       href.includes('/presale') ||
-                       ['save', 'export', 'download', 'deploy', 'generate', 'buy', 'checkout', 'claim', 'purchase'].some(k => text.includes(k));
+                       ['save', 'export', 'download', 'deploy', 'generate', 'buy', 'checkout', 'upgrade', 'subscribe', 'run', 'execute', 'send', 'submit'].some(k => text.includes(k));
       
       if (isAction) {
         e.preventDefault();
         e.stopPropagation();
         showToast('🔒 Feature unlocks June 23, 2026');
+        return;
       }
+      
+      if (target.href && (target.href.includes('chronoverse') || target.href.includes('trustshield') || target.href.startsWith('#'))) return;
+      if (target.href && (target.href.includes(window.location.host))) return;
     }, true); // Use capture phase
   };
 
@@ -595,18 +649,7 @@
       setTimeout(() => toast.remove(), 300);
     }, 3000);
   }
-
-  document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('gb-enter-demo').addEventListener('click', enterDemoMode);
-  });
 </script>
 
-
-
-<!-- Made with Lume -->
-<a href="https://lume-lang.org" target="_blank" rel="noopener" id="lume-badge" style="position:fixed;bottom:12px;right:12px;display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(2,6,23,0.88);border:1px solid rgba(34,211,238,0.3);border-radius:20px;color:#22d3ee;font-size:11px;font-weight:700;text-decoration:none;z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all 0.3s;font-family:Inter,system-ui,sans-serif;letter-spacing:0.02em;box-shadow:0 2px 12px rgba(0,0,0,0.3);">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-  Made with Lume
-</a>
 </body>
 </html>
