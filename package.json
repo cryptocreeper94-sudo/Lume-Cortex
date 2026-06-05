@@ -1,10 +1,10 @@
 {
   "name": "lume-cortex",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Lume Cortex — The Deterministic Meta-Operating System Interface | Built with Lume",
   "type": "module",
   "main": "electron/main.js",
-  "scripts": {
+  "scripts": {"eas-build-pre-build": "npm install && npx cap sync android",
     "build": "node build.js",
     "dev": "node build.js && npx -y serve .",
     "electron:dev": "node build.js && electron .",
@@ -12,9 +12,15 @@
     "start:server": "node server/index.js"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.0",
+    "astral-regex": "^2.0.0",
     "electron": "^30.0.0",
     "electron-builder": "^24.13.3"
   },
   "author": "DarkWave Studios LLC",
-  "license": "CC-BY-4.0"
+  "license": "CC-BY-4.0",
+  "dependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/core": "^8.4.0"
+  }
 }

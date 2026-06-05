@@ -1,0 +1,6 @@
+{
+  "appId": "com.darkwave.lumecortex",
+  "appName": "Lume Cortex",
+  "webDir": "dist/web",
+  "bundledWebRuntime": false
+}
