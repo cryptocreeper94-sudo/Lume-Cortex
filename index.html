@@ -27,12 +27,29 @@
     :root{--accent:#0ea5e9;--accent-rgb:14,165,233;--bg:#020617;--text:#f8fafc;--text-dim:rgba(248,250,252,.6);--text-muted:rgba(248,250,252,.3);--border:rgba(255,255,255,.08);--border-accent:rgba(var(--accent-rgb),.2)}
     html,body{min-height:100vh;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 
-    .bg-canvas{position:fixed;inset:0;pointer-events:none;z-index:0}
-    .orb{position:absolute;border-radius:50%;filter:blur(140px);opacity:.1;animation:drift 28s ease-in-out infinite alternate}
-    .orb-1{width:600px;height:600px;background:var(--accent);top:-200px;left:-100px}
-    .orb-2{width:500px;height:500px;background:#06b6d4;bottom:-200px;right:-100px;animation-delay:8s}
-    @keyframes drift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(50px,-30px) scale(1.05)}}
-    .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:60px 60px}
+    @keyframes kenburns-hero {
+      0% { transform: scale(1.0); opacity: 0; }
+      5% { opacity: 0.4; }
+      28% { opacity: 0.4; }
+      33% { opacity: 0; }
+      100% { transform: scale(1.15); opacity: 0; }
+    }
+    .landing-hero-bg {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .landing-hero-slide {
+      position: absolute; top: -5%; left: -5%; width: 110%; height: 110%;
+      background-size: cover; background-position: center; opacity: 0;
+      animation: kenburns-hero 24s infinite linear;
+    }
+    .landing-hero-slide:nth-child(1) { animation-delay: 0s; background-image: url('assets/cortex_slide_1.png'); }
+    .landing-hero-slide:nth-child(2) { animation-delay: 8s; background-image: url('assets/cortex_slide_2.png'); }
+    .landing-hero-slide:nth-child(3) { animation-delay: 16s; background-image: url('assets/cortex_slide_3.png'); }
+    .landing-hero-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(180deg, rgba(2,6,23,0.3) 0%, rgba(2,6,23,0.85) 60%, rgba(2,6,23,1) 100%);
+      z-index: 1; pointer-events: none;
+    }
 
     .page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px 60px;max-width:800px;margin:0 auto}
 
@@ -130,8 +147,12 @@
 
 </head>
 <body>
-  <div class="bg-canvas"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
-  <div class="bg-grid"></div>
+  <div class="landing-hero-bg">
+    <div class="landing-hero-slide"></div>
+    <div class="landing-hero-slide"></div>
+    <div class="landing-hero-slide"></div>
+    <div class="landing-hero-overlay"></div>
+  </div>
 
   <div class="page">
     <div class="topbar">
@@ -143,7 +164,6 @@
     </div>
 
     <div class="hero">
-      <span class="app-icon">⚡</span>
       <div class="chip">FREE OPEN-SOURCE OS</div>
       <h1>Cortex</h1>
       <p class="tagline">Autonomous AI Reasoning Engine</p>
